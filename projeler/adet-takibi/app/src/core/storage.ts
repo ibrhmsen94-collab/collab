@@ -57,15 +57,18 @@ export function sanitizeSettings(raw: unknown): Settings {
   };
 }
 
-/** Depodan/içe aktarımdan gelen veriyi doğrular; tanınmayan alanları atar. Geçersizse hata fırlatır. */
-export function parseData(json: string): AppData {
+/**
+ * Depodan/içe aktarımdan gelen veriyi doğrular; tanınmayan alanları atar. Geçersizse hata fırlatır.
+ * maxDate verilirse (içe aktarma) bu tarihten sonraki kayıtlar atılır.
+ */
+export function parseData(json: string, maxDate?: string): AppData {
   const raw: unknown = JSON.parse(json);
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('invalid');
   const r = raw as Record<string, unknown>;
   if (r.version !== 1 || !r.logs || typeof r.logs !== 'object' || Array.isArray(r.logs)) throw new Error('invalid');
   const logs: Logs = {};
   for (const [date, value] of Object.entries(r.logs as Record<string, unknown>)) {
-    if (!isValidDate(date)) continue;
+    if (!isValidDate(date) || (maxDate && date > maxDate)) continue;
     const log = sanitizeLog(value);
     if (log) logs[date] = log;
   }

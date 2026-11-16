@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useStore } from '../store';
 import { useColors } from '../theme';
 
 export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -63,18 +64,26 @@ export function Stepper({ label, value, min, max, unit, onChange, testID }: {
   label: string; value: number; min: number; max: number; unit?: string; onChange: (v: number) => void; testID?: string;
 }) {
   const c = useColors();
-  const btn = (delta: number, sign: string) => (
-    <Pressable
-      testID={testID && `${testID}-${delta > 0 ? 'inc' : 'dec'}`}
-      accessibilityRole="button"
-      accessibilityLabel={`${label} ${sign}`}
-      disabled={value + delta < min || value + delta > max}
-      onPress={() => onChange(value + delta)}
-      style={({ pressed }) => [s.stepBtn, { borderColor: c.border, opacity: value + delta < min || value + delta > max ? 0.3 : pressed ? 0.6 : 1 }]}
-    >
-      <Text style={{ color: c.primary, fontSize: 22, lineHeight: 24 }}>{sign}</Text>
-    </Pressable>
-  );
+  const { t } = useStore();
+  const decreaseLabel = t('decrease');
+  const increaseLabel = t('increase');
+  const btn = (delta: number, sign: string) => {
+    const disabled = value + delta < min || value + delta > max;
+    return (
+      <Pressable
+        testID={testID && `${testID}-${delta > 0 ? 'inc' : 'dec'}`}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${delta > 0 ? increaseLabel : decreaseLabel}`}
+        accessibilityValue={{ text: `${value}${unit ? ` ${unit}` : ''}` }}
+        accessibilityState={{ disabled }}
+        disabled={disabled}
+        onPress={() => onChange(value + delta)}
+        style={({ pressed }) => [s.stepBtn, { borderColor: c.border, opacity: disabled ? 0.3 : pressed ? 0.6 : 1 }]}
+      >
+        <Text style={{ color: c.primary, fontSize: 22, lineHeight: 24 }}>{sign}</Text>
+      </Pressable>
+    );
+  };
   return (
     <View style={s.row}>
       <Text style={[s.body, { color: c.text, flex: 1 }]}>{label}</Text>

@@ -18,6 +18,7 @@ export function CalendarScreen({ now, prediction, onLog }: { now: ISODate; predi
             const l = data.logs[d];
             return {
               kind: dayKind(d, data.logs, prediction, showFertility),
+              editable: !!l,
               hasLog: !!l && (!!l.symptoms?.length || !!l.moods?.length || !!l.note || !!l.discharge || l.bbt != null || !!l.sex || !!l.pill),
             };
           }}

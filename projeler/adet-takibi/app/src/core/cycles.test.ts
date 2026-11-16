@@ -52,6 +52,16 @@ describe('getPeriods', () => {
       { start: '2026-01-07', end: '2026-01-07', length: 1 },
     ]);
   });
+  test('lekelenme adeti bölmez, ama başlangıç/bitişe de sayılmaz', () => {
+    const logs: Logs = {
+      '2026-10-25': { flow: 'spotting' }, // adet öncesi lekelenme
+      '2026-10-27': { flow: 'medium' }, '2026-10-28': { flow: 'spotting' }, '2026-10-29': { flow: 'spotting' },
+      '2026-10-30': { flow: 'light' }, '2026-10-31': { flow: 'light' },
+      '2026-11-01': { flow: 'spotting' },
+      '2026-11-12': { flow: 'spotting' }, // döngü ortası lekelenme ayrı kalır
+    };
+    expect(getPeriods(logs)).toEqual([{ start: '2026-10-27', end: '2026-10-31', length: 5 }]);
+  });
   test('lekelenme ve akışsız kayıt adet sayılmaz', () => {
     expect(getPeriods({ '2026-01-01': { flow: 'spotting' }, '2026-01-02': { symptoms: ['cramps'] } })).toEqual([]);
   });
@@ -60,7 +70,7 @@ describe('getPeriods', () => {
 describe('getStats', () => {
   test('geçmiş yokken ayarlardaki varsayılanı kullanır', () => {
     const st = getStats([], { cycleLength: 30, periodLength: 4 });
-    expect(st).toMatchObject({ avgCycle: 30, avgPeriod: 4, usingDefaults: true, confidence: 'low', uncertainty: 3 });
+    expect(st).toMatchObject({ avgCycle: 30, avgPeriod: 4, usingDefaults: true, confidence: 'low', uncertainty: 5 });
   });
   test('düzenli döngülerde yüksek güven ve ±1 gün', () => {
     const st = getStats(getPeriods(logsFrom(starts('2026-01-01', [28, 28, 29, 28]))), S);
@@ -76,6 +86,13 @@ describe('getStats', () => {
     expect(st.cycleCount).toBe(6);
     expect(st.avgCycle).toBe(29); // (26*1+26*2+26*3+26*4+32*5+32*6)/21 = 29.1
     expect(st.maxCycle).toBe(32);
+  });
+  test('tek döngüde belirsizlik ±4 gün', () => {
+    expect(getStats(getPeriods(logsFrom(starts('2026-01-01', [30]))), S)).toMatchObject({ avgCycle: 30, uncertainty: 4, confidence: 'low' });
+  });
+  test('tüm döngüler aralık dışıysa varsayılan yerine onlar kullanılır', () => {
+    const st = getStats(getPeriods(logsFrom(starts('2025-01-01', [70, 70, 70, 70]))), S);
+    expect(st).toMatchObject({ avgCycle: 70, usingDefaults: false });
   });
   test('adet süresi tamamlanmış adetlerin medyanıdır; süren adet hariç', () => {
     const logs = { ...logsFrom(['2026-01-01', '2026-01-29'], 6), '2026-02-26': { flow: 'heavy' as const } };
@@ -149,6 +166,12 @@ describe('getAlerts', () => {
     const irr = starts('2026-01-01', [24, 35, 27]);
     expect(getAlerts(logsFrom(irr), addDays(irr[3], 5))).toContain('irregular');
     expect(getAlerts(logsFrom(['2026-01-01'], 9), '2026-01-12')).toContain('longPeriod');
+  });
+  test('ortalamadan dışlanan aykırı döngüler de uyarı üretir', () => {
+    const long = starts('2025-01-01', [70, 70, 70, 70]);
+    expect(getAlerts(logsFrom(long), addDays(long[4], 5))).toContain('longCycles');
+    const short = starts('2026-01-01', [10, 10, 10, 10]);
+    expect(getAlerts(logsFrom(short, 3), addDays(short[4], 5))).toContain('shortCycles');
   });
   test('90 günden uzun süre adet yoksa uyarır', () => {
     expect(getAlerts(logsFrom(['2026-01-01']), '2026-04-05')).toContain('noPeriod90');

@@ -46,20 +46,33 @@ export async function ensurePermission(): Promise<boolean> {
   return (await Notifications.requestPermissionsAsync()).granted;
 }
 
-/** Tüm planlı hatırlatmaları iptal edip güncel tahmine göre yeniden kurar. */
-export async function syncReminders(reminders: Reminder[]): Promise<void> {
+let chain: Promise<void> = Promise.resolve();
+let generation = 0;
+
+/**
+ * Tüm planlı hatırlatmaları iptal edip güncel tahmine göre yeniden kurar.
+ * Çağrılar sıraya alınır; yeni bir çağrı gelince eskisi yarıda bırakılır (yinelenen bildirim kalmaz).
+ */
+export function syncReminders(reminders: Reminder[], channelName: string): Promise<void> {
+  const mine = ++generation;
+  chain = chain.then(() => (mine === generation ? run(reminders, channelName, () => mine !== generation) : undefined));
+  return chain;
+}
+
+async function run(reminders: Reminder[], channelName: string, stale: () => boolean): Promise<void> {
   if (!notificationsSupported) return;
   try {
     await Notifications.cancelAllScheduledNotificationsAsync();
     if (!reminders.length || !(await Notifications.getPermissionsAsync()).granted) return;
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('reminders', {
-        name: 'Hatırlatmalar',
+        name: channelName,
         importance: Notifications.AndroidImportance.DEFAULT,
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
       });
     }
     for (const r of reminders) {
+      if (stale()) return;
       await Notifications.scheduleNotificationAsync({
         content: { title: r.title, body: r.body },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at9(r.date), channelId: 'reminders' },

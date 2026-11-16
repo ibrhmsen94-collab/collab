@@ -35,7 +35,14 @@ const tr = {
   'log.title': 'Günlük kayıt', 'log.flow': 'Kanama', 'log.symptoms': 'Belirtiler', 'log.moods': 'Ruh hali',
   'log.discharge': 'Akıntı', 'log.sex': 'Cinsel ilişki', 'log.pill': 'Hap alındı', 'log.other': 'Diğer', 'log.bbt': 'Bazal sıcaklık (°C)',
   'log.note': 'Not', 'log.notePlaceholder': 'Bugün nasıl hissediyorsun?', 'log.future': 'Gelecek günlere kayıt eklenemez.',
-  'log.clear': 'Bu günün kaydını sil',
+  'log.clear': 'Bu günün kaydını sil', 'log.bbtInvalid': '34–42 °C arasında bir değer gir.',
+  decrease: 'azalt', increase: 'artır',
+  'set.fertilityHint': 'Takvime dayalı kaba bir tahmindir; korunma ya da gebelik planı için kullanılamaz.',
+  'set.importConfirm': 'Yedekte {n} günlük kayıt var. Mevcut verilerinin yerine geçecek.', 'set.importYes': 'Evet, değiştir',
+  'load.title': 'Veriler okunamadı', 'load.body': 'Kayıtların açılamadı. Verilerin silinmedi. Yeniden deneyebilir ya da sıfırdan başlayabilirsin; sıfırdan başlarsan eski kayıt cihazda ayrı bir yerde saklanır.',
+  'load.retry': 'Yeniden dene', 'load.reset': 'Sıfırdan başla',
+  'lock.disabled': 'Cihazda ekran kilidi kalmadığı için uygulama kilidi kapatıldı.',
+  'notif.channel': 'Hatırlatmalar',
   'flow.spotting': 'Lekelenme', 'flow.light': 'Hafif', 'flow.medium': 'Orta', 'flow.heavy': 'Yoğun',
   'sym.cramps': 'Kramp', 'sym.headache': 'Baş ağrısı', 'sym.backache': 'Bel ağrısı', 'sym.bloating': 'Şişkinlik',
   'sym.breastTenderness': 'Göğüs hassasiyeti', 'sym.acne': 'Sivilce', 'sym.fatigue': 'Yorgunluk', 'sym.nausea': 'Mide bulantısı',
@@ -115,7 +122,14 @@ const en: Record<Key, string> = {
   'log.title': 'Daily entry', 'log.flow': 'Bleeding', 'log.symptoms': 'Symptoms', 'log.moods': 'Mood',
   'log.discharge': 'Discharge', 'log.sex': 'Sex', 'log.pill': 'Pill taken', 'log.other': 'Other', 'log.bbt': 'Basal temperature (°C)',
   'log.note': 'Note', 'log.notePlaceholder': 'How are you feeling today?', 'log.future': 'You can\'t log future days.',
-  'log.clear': 'Delete this day\'s entry',
+  'log.clear': 'Delete this day\'s entry', 'log.bbtInvalid': 'Enter a value between 34 and 42 °C.',
+  decrease: 'decrease', increase: 'increase',
+  'set.fertilityHint': 'A rough calendar-based estimate; it cannot be used for contraception or pregnancy planning.',
+  'set.importConfirm': 'The backup has entries for {n} days. It will replace your current data.', 'set.importYes': 'Yes, replace',
+  'load.title': 'Could not read your data', 'load.body': 'Your entries could not be opened. Nothing was deleted. You can retry or start fresh; if you start fresh, the old record is kept separately on this device.',
+  'load.retry': 'Retry', 'load.reset': 'Start fresh',
+  'lock.disabled': 'App lock was turned off because the device no longer has a screen lock.',
+  'notif.channel': 'Reminders',
   'flow.spotting': 'Spotting', 'flow.light': 'Light', 'flow.medium': 'Medium', 'flow.heavy': 'Heavy',
   'sym.cramps': 'Cramps', 'sym.headache': 'Headache', 'sym.backache': 'Backache', 'sym.bloating': 'Bloating',
   'sym.breastTenderness': 'Tender breasts', 'sym.acne': 'Acne', 'sym.fatigue': 'Fatigue', 'sym.nausea': 'Nausea',
@@ -167,6 +181,8 @@ export function translator(lang: Lang): T {
   return (key, params) => {
     let s: string = dict[lang][key] ?? tr[key] ?? key;
     if (params) for (const [k, v] of Object.entries(params)) s = s.replace(`{${k}}`, String(v));
+    // İngilizce tekil: "1 days" → "1 day", "1 times" → "1 time"
+    if (lang === 'en' && params?.n === 1) s = s.replace(/\b1 (day|time)s\b/, '1 $1');
     return s;
   };
 }
@@ -179,9 +195,12 @@ const WEEKDAYS = { tr: ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'], en: ['Mo', '
 
 export const weekdays = (lang: Lang) => WEEKDAYS[lang];
 export const monthName = (lang: Lang, month: string) => `${MONTHS[lang][Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
-/** '2026-11-16' → '16 Kasım' / 'November 16' */
-export function formatDate(lang: Lang, d: string): string {
+/** '2026-11-16' → '16 Kasım' / 'November 16'; başka yıl ise '16 Kasım 2025' / 'November 16, 2025' */
+export function formatDate(lang: Lang, d: string, currentYear: number = new Date().getFullYear()): string {
   const m = MONTHS[lang][Number(d.slice(5, 7)) - 1];
   const day = Number(d.slice(8, 10));
-  return lang === 'tr' ? `${day} ${m}` : `${m} ${day}`;
+  const year = Number(d.slice(0, 4));
+  // Yıl yalnızca içinde bulunulan yıldan farklıysa yazılır
+  const y = year === currentYear ? '' : lang === 'tr' ? ` ${year}` : `, ${year}`;
+  return (lang === 'tr' ? `${day} ${m}` : `${m} ${day}`) + y;
 }

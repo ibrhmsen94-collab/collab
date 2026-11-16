@@ -31,11 +31,20 @@ export function LogSheet({ date, onClose }: { date: ISODate | null; onClose: () 
 
   if (!date) return null;
   const set = (patch: Partial<DayLog>) => setLog(date, patch);
-  const commitBbt = () => {
-    const v = Number(bbt.replace(',', '.'));
-    const ok = bbt.trim() !== '' && Number.isFinite(v) && v >= 34 && v <= 42;
-    set({ bbt: ok ? v : undefined });
-    if (!ok) setBbt('');
+  const bbtValue = Number(bbt.replace(',', '.'));
+  const bbtValid = bbt.trim() !== '' && Number.isFinite(bbtValue) && bbtValue >= 34 && bbtValue <= 42;
+  const bbtError = bbt.trim() !== '' && !bbtValid;
+  // Yazarken kaydedilir: geri tuşu, aşağı kaydırma ya da kilitlenme veri kaybettirmez.
+  // Geçersiz girdi kayıtlı değeri silmez.
+  const changeBbt = (v: string) => {
+    setBbt(v);
+    const n = Number(v.replace(',', '.'));
+    if (v.trim() === '') set({ bbt: undefined });
+    else if (Number.isFinite(n) && n >= 34 && n <= 42) set({ bbt: n });
+  };
+  const changeNote = (v: string) => {
+    setNote(v);
+    set({ note: v });
   };
   const input = { borderColor: c.border, color: c.text, backgroundColor: c.card };
 
@@ -49,7 +58,7 @@ export function LogSheet({ date, onClose }: { date: ISODate | null; onClose: () 
               {formatDate(data.settings.lang, date)}
             </Text>
           </View>
-          <Button testID="log-done" label={t('done')} onPress={() => { commitBbt(); set({ note }); onClose(); }} />
+          <Button testID="log-done" label={t('done')} onPress={onClose} />
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
           <H>{t('log.flow')}</H>
@@ -93,22 +102,22 @@ export function LogSheet({ date, onClose }: { date: ISODate | null; onClose: () 
             testID="log-bbt"
             accessibilityLabel={t('log.bbt')}
             value={bbt}
-            onChangeText={setBbt}
-            onBlur={commitBbt}
+            onChangeText={changeBbt}
+            onBlur={() => { if (bbtError) setBbt(log.bbt != null ? String(log.bbt) : ''); }}
             keyboardType="decimal-pad"
             placeholder="36.5"
             placeholderTextColor={c.muted}
             maxLength={5}
-            style={[s.input, input]}
+            style={[s.input, input, bbtError && { borderColor: c.danger }]}
           />
+          {bbtError ? <Text testID="bbt-error" accessibilityLiveRegion="polite" style={{ color: c.danger, marginTop: 6 }}>{t('log.bbtInvalid')}</Text> : null}
           <View style={s.gap} />
           <H>{t('log.note')}</H>
           <TextInput
             testID="log-note"
             accessibilityLabel={t('log.note')}
             value={note}
-            onChangeText={setNote}
-            onBlur={() => set({ note })}
+            onChangeText={changeNote}
             placeholder={t('log.notePlaceholder')}
             placeholderTextColor={c.muted}
             multiline

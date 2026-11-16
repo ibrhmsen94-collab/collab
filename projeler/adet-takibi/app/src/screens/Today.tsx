@@ -92,6 +92,7 @@ export function Today({ now, prediction: p, alerts, onLog }: {
               <>
                 <Text testID="fertile" style={[s.big, { color: c.text }]}>{range(w.fertileStart, w.fertileEnd)}</Text>
                 <Body muted style={{ fontSize: 14 }}>{t('today.ovulation')}: {formatDate(lang, w.ovulation)}</Body>
+                <Body muted style={{ fontSize: 13, marginTop: 6 }}>{t('set.fertilityHint')}</Body>
               </>
             ) : null;
           })()}

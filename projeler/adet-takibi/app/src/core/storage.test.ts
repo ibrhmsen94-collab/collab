@@ -27,6 +27,16 @@ describe('storage', () => {
     expect(d.logs).toEqual({ '2026-11-01': { symptoms: ['cramps'] } });
     expect(d.settings).toMatchObject({ cycleLength: 60, lang: 'tr', appLock: false });
   });
+  test('içe aktarmada gelecekteki kayıtlar atılır, depodan okurken korunur', () => {
+    const json = JSON.stringify({ version: 1, settings: {}, logs: { '2026-11-16': { flow: 'light' }, '2030-01-01': { flow: 'heavy' } } });
+    expect(Object.keys(parseData(json, '2026-11-16').logs)).toEqual(['2026-11-16']);
+    expect(Object.keys(parseData(json).logs)).toHaveLength(2);
+  });
+  test('__proto__ anahtarı prototipi kirletmez', () => {
+    const d = parseData('{"version":1,"settings":{},"logs":{"__proto__":{"flow":"heavy"}}}');
+    expect(d.logs).toEqual({});
+    expect(({} as Record<string, unknown>).flow).toBeUndefined();
+  });
   test('sanitizeLog boş kaydı null yapar, notu kısaltır', () => {
     expect(sanitizeLog({ note: '   ' })).toBeNull();
     expect(sanitizeLog(null)).toBeNull();

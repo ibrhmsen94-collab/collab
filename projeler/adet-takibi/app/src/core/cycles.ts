@@ -26,19 +26,26 @@ export interface Cycle {
   valid: boolean;
 }
 
+/**
+ * Kanama günlerini adetlere gruplar. Lekelenme günleri adet sayılmaz ama aradaki boşluğu köprüler:
+ * "orta, lekelenme, lekelenme, hafif" tek adettir. Başlangıç/bitiş yalnızca gerçek kanama günlerinden alınır.
+ */
 export function getPeriods(logs: Logs): Period[] {
-  const days = Object.keys(logs).filter((d) => isPeriodFlow(logs[d].flow)).sort();
-  const periods: Period[] = [];
+  const days = Object.keys(logs).filter((d) => logs[d].flow).sort();
+  const groups: { start: ISODate | null; end: ISODate | null; lastAny: ISODate }[] = [];
   for (const d of days) {
-    const last = periods[periods.length - 1];
-    if (last && diffDays(last.end, d) <= MAX_GAP_IN_PERIOD + 1) {
-      last.end = d;
-      last.length = diffDays(last.start, d) + 1;
-    } else {
-      periods.push({ start: d, end: d, length: 1 });
+    let g = groups[groups.length - 1];
+    if (!g || diffDays(g.lastAny, d) > MAX_GAP_IN_PERIOD + 1) {
+      g = { start: null, end: null, lastAny: d };
+      groups.push(g);
+    }
+    g.lastAny = d;
+    if (isPeriodFlow(logs[d].flow)) {
+      g.start ??= d;
+      g.end = d;
     }
   }
-  return periods;
+  return groups.flatMap((g) => (g.start && g.end ? [{ start: g.start, end: g.end, length: diffDays(g.start, g.end) + 1 }] : []));
 }
 
 /** Tamamlanmış döngüler (bir adet başlangıcından sonrakine). */
@@ -97,7 +104,11 @@ export interface Stats {
 }
 
 export function getStats(periods: Period[], settings: Pick<Settings, 'cycleLength' | 'periodLength'>): Stats {
-  const lengths = getCycles(periods).filter((c) => c.valid).map((c) => c.length).slice(-HISTORY_WINDOW);
+  const cycles = getCycles(periods);
+  const valid = cycles.filter((c) => c.valid);
+  // Hiç "geçerli" döngü yoksa ama tutarlı biçimde aralık dışı döngüler varsa (ör. hep 70 gün) onları kullan.
+  const pool = valid.length ? valid : cycles.length >= 2 ? cycles : [];
+  const lengths = pool.map((c) => c.length).slice(-HISTORY_WINDOW);
   // Devam ediyor olabilecek son adet hariç, tamamlanmış adet süreleri
   const periodLengths = periods.slice(0, -1).map((p) => p.length).slice(-HISTORY_WINDOW);
   const n = lengths.length;
@@ -105,7 +116,8 @@ export function getStats(periods: Period[], settings: Pick<Settings, 'cycleLengt
   const avgCycle = usingDefaults ? settings.cycleLength : Math.round(recencyWeightedMean(lengths));
   const avgPeriod = periodLengths.length ? Math.round(median(periodLengths)) : settings.periodLength;
   const sd = stdev(lengths);
-  const uncertainty = n < 2 ? 3 : Math.min(7, Math.max(1, Math.round(sd)));
+  // Veri azken aralık geniş tutulur (kişi içi değişkenlik ~3 gün; öncül belirsizliği eklenir).
+  const uncertainty = n === 0 ? 5 : n === 1 ? 4 : Math.min(7, Math.max(1, Math.round(sd)));
   const confidence: Confidence = n >= 3 && sd <= 2 ? 'high' : n >= 2 && sd <= 4 ? 'medium' : 'low';
   return {
     cycleCount: n,
@@ -216,8 +228,8 @@ export type Alert = 'shortCycles' | 'longCycles' | 'irregular' | 'longPeriod' | 
 /** Hekime danışmayı önermeyi gerektirebilecek örüntüler (tanı değildir). */
 export function getAlerts(logs: Logs, now: ISODate): Alert[] {
   const periods = getPeriods(logs).filter((p) => p.start <= now);
-  const recent = getCycles(periods).slice(-HISTORY_WINDOW);
-  const lengths = recent.filter((c) => c.valid).map((c) => c.length);
+  // Uyarılar, ortalamadan dışlanan aykırı döngüleri de görmelidir; bu yüzden ham uzunluklar kullanılır.
+  const lengths = getCycles(periods).slice(-HISTORY_WINDOW).map((c) => c.length);
   const alerts: Alert[] = [];
   if (lengths.filter((l) => l < 21).length >= 2) alerts.push('shortCycles');
   if (lengths.filter((l) => l > 35).length >= 2) alerts.push('longCycles');

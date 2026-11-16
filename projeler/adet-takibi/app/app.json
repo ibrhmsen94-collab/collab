@@ -30,7 +30,13 @@
     "plugins": [
       "expo-localization",
       "expo-local-authentication",
-      "expo-notifications"
+      [
+        "expo-notifications",
+        {
+          "enableRemoteNotifications": false
+        }
+      ],
+      "expo-sharing"
     ]
   }
 }

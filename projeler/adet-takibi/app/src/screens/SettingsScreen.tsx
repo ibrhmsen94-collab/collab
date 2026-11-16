@@ -1,19 +1,37 @@
 import { useState } from 'react';
-import { Modal, Platform, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { File, Paths } from 'expo-file-system';
 import * as LocalAuthentication from 'expo-local-authentication';
+import * as Sharing from 'expo-sharing';
+import { today } from '../core/dates';
+import type { AppData } from '../core/types';
 import { parseData, serialize } from '../core/storage';
 import { ensurePermission, notificationsSupported } from '../notifications';
 import { useStore } from '../store';
 import { useColors } from '../theme';
 import { Body, Button, Card, Chip, Chips, H, Stepper, Toggle } from '../ui/kit';
 
-function Dialog({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+function Dialog({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: React.ReactNode }) {
   const c = useColors();
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={s.backdrop}><View style={[s.dialog, { backgroundColor: c.card }]}>{children}</View></View>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={s.backdrop}>
+        <View accessibilityViewIsModal style={[s.dialog, { backgroundColor: c.card }]}>{children}</View>
+      </View>
     </Modal>
   );
+}
+
+/** Yedeği dosya olarak paylaşır; paylaşım bitince geçici dosyayı siler. */
+async function shareBackupFile(json: string) {
+  const file = new File(Paths.cache, 'dongum-yedek.json');
+  try {
+    file.create({ overwrite: true });
+    file.write(json);
+    await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' });
+  } finally {
+    if (file.exists) file.delete();
+  }
 }
 
 export function SettingsScreen() {
@@ -25,6 +43,7 @@ export function SettingsScreen() {
   const [importing, setImporting] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState(false);
+  const [pending, setPending] = useState<AppData | null>(null);
 
   const enableReminder = async (patch: Parameters<typeof setSettings>[0]) => {
     if (!notificationsSupported) return setMsg(t('set.notifWeb'));
@@ -35,7 +54,9 @@ export function SettingsScreen() {
 
   const toggleLock = async (v: boolean) => {
     if (!v) return setSettings({ appLock: false });
-    if (Platform.OS === 'web' || !(await LocalAuthentication.isEnrolledAsync())) return setMsg(t('set.lockUnavailable'));
+    // Biyometri yoksa cihaz PIN'i/deseni de yeterlidir
+    const level = Platform.OS === 'web' ? LocalAuthentication.SecurityLevel.NONE : await LocalAuthentication.getEnrolledLevelAsync();
+    if (level === LocalAuthentication.SecurityLevel.NONE) return setMsg(t('set.lockUnavailable'));
     const r = await LocalAuthentication.authenticateAsync({ promptMessage: t('lock.reason') });
     if (r.success) {
       setMsg('');
@@ -52,18 +73,31 @@ export function SettingsScreen() {
       a.click();
       URL.revokeObjectURL(a.href);
     } else {
-      await Share.share({ message: json }).catch(() => {});
+      await shareBackupFile(json).catch(() => {});
     }
   };
 
+  const closeImport = () => {
+    setImporting(false);
+    setImportText('');
+    setImportError(false);
+    setPending(null);
+  };
+
+  // İlk basışta yedek doğrulanır ve özet gösterilir; ikinci basışta mevcut verinin yerine geçer.
   const doImport = () => {
-    try {
-      const next = parseData(importText);
-      replaceAll({ ...next, settings: { ...next.settings, onboarded: true, appLock: st.appLock } });
-      setImporting(false);
-      setImportText('');
-      setImportError(false);
+    if (pending) {
+      // Bildirim izni ve kilit bu cihaza aittir; yedekten taşınmaz.
+      replaceAll({
+        ...pending,
+        settings: { ...pending.settings, onboarded: true, appLock: st.appLock, remindPeriod: st.remindPeriod, remindFertile: st.remindFertile },
+      });
+      closeImport();
       setMsg(t('set.importOk'));
+      return;
+    }
+    try {
+      setPending(parseData(importText, today()));
     } catch {
       setImportError(true);
     }
@@ -76,7 +110,7 @@ export function SettingsScreen() {
         <H>{t('set.cycle')}</H>
         <Stepper testID="set-cycle" label={t('onb.cycleLength')} unit={t('days')} value={st.cycleLength} min={15} max={60} onChange={(v) => setSettings({ cycleLength: v })} />
         <Stepper testID="set-period" label={t('onb.periodLength')} unit={t('days')} value={st.periodLength} min={1} max={10} onChange={(v) => setSettings({ periodLength: v })} />
-        <Toggle testID="set-fertility" label={t('set.showFertility')} value={st.showFertility} onChange={(v) => setSettings({ showFertility: v })} />
+        <Toggle testID="set-fertility" label={t('set.showFertility')} hint={t('set.fertilityHint')} value={st.showFertility} onChange={(v) => setSettings({ showFertility: v })} />
       </Card>
       <Card>
         <H>{t('set.reminders')}</H>
@@ -112,22 +146,22 @@ export function SettingsScreen() {
       </Card>
       <Card><H>{t('set.about')}</H><Body muted style={{ fontSize: 13 }}>{t('disclaimer')}</Body></Card>
 
-      <Dialog visible={confirmDelete}>
+      <Dialog visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <Body>{t('set.deleteConfirm')}</Body>
         <Button testID="delete-yes" kind="danger" label={t('set.deleteYes')} onPress={() => { setConfirmDelete(false); void deleteAll(); }} />
         <Button testID="delete-no" label={t('cancel')} onPress={() => setConfirmDelete(false)} />
       </Dialog>
-      <Dialog visible={importing}>
-        <Body>{t('set.importHint')}</Body>
+      <Dialog visible={importing} onClose={closeImport}>
+        <Body>{pending ? t('set.importConfirm', { n: Object.keys(pending.logs).length }) : t('set.importHint')}</Body>
         <TextInput
           testID="import-text" accessibilityLabel={t('set.import')} value={importText}
-          onChangeText={(v) => { setImportText(v); setImportError(false); }}
+          onChangeText={(v) => { setImportText(v); setImportError(false); setPending(null); }}
           multiline autoCapitalize="none" autoCorrect={false}
           style={[s.input, { borderColor: importError ? c.danger : c.border, color: c.text }]}
         />
         {importError ? <Text testID="import-error" style={{ color: c.danger, marginTop: 6 }}>{t('set.importBad')}</Text> : null}
-        <Button testID="import-ok" label={t('set.import')} disabled={!importText.trim()} onPress={doImport} />
-        <Button kind="ghost" label={t('cancel')} onPress={() => { setImporting(false); setImportError(false); }} />
+        <Button testID="import-ok" kind={pending ? 'danger' : 'primary'} label={pending ? t('set.importYes') : t('set.import')} disabled={!importText.trim()} onPress={doImport} />
+        <Button testID="import-cancel" kind="ghost" label={t('cancel')} onPress={closeImport} />
       </Dialog>
     </View>
   );

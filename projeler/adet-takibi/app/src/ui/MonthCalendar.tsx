@@ -8,6 +8,8 @@ import { useColors, type Colors } from '../theme';
 export interface DayInfo {
   kind: DayKind;
   hasLog: boolean;
+  /** maxDate sonrasında olsa bile seçilebilir (ör. saat dilimi değişince gelecekte kalan kayıt) */
+  editable?: boolean;
 }
 
 const KIND_LABEL = {
@@ -63,9 +65,9 @@ export function MonthCalendar({ month, onMonthChange, info, today, selected, onS
         ))}
         {monthGrid(month).map((d, i) => {
           if (!d) return <View key={`e${i}`} style={s.cell} />;
-          const { kind, hasLog } = info(d);
+          const { kind, hasLog, editable } = info(d);
           const st = cellStyle(kind, c);
-          const disabled = !!maxDate && d > maxDate;
+          const disabled = !!maxDate && d > maxDate && !editable;
           const isToday = d === today;
           const label = [formatDate(lang, d), isToday ? t('cal.today') : '', kind ? t(KIND_LABEL[kind]) : '', hasLog ? t('cal.legend.logged') : '']
             .filter(Boolean).join(', ');
