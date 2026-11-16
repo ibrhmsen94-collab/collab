@@ -1,0 +1,15 @@
+Döngüm: telefona kurulabilir uygulama (PWA)
+
+1) Bu klasörü bir web adresine koy (ücretsiz, 1 dakika):
+   - https://app.netlify.com/drop adresine bu KLASÖRÜ sürükle-bırak.
+   - Ya da Cloudflare Pages / Vercel / kendi sunucun. Adres alan adının kökünde olmalı
+     (ör. https://dongum.netlify.app/, https://alan.com/alt-klasor/ OLMAZ).
+   - Adres https:// ile başlamalı (PWA için şart).
+2) Telefonda adresi aç:
+   - iPhone (Safari): Paylaş > Ana Ekrana Ekle.
+   - Android (Chrome): menü > Uygulamayı yükle / Ana ekrana ekle.
+3) Kurulunca internet olmadan da çalışır; veriler yalnızca o telefonda saklanır.
+
+Sınırlar (web sürümünde): hatırlatma bildirimleri ve uygulama kilidi yok; bunlar
+mağaza sürümünde (YAYINLAMA.md) çalışır. Tarayıcı verisini silersen kayıtlar da gider;
+Ayarlar > Yedeği dışa aktar ile düzenli yedek al.

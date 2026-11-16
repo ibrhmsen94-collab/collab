@@ -1,5 +1,8 @@
 # Döngüm — açma ve mağazalara yükleme
 
+## 0. Hemen telefonda kullanmak için (mağaza gerekmez)
+`telefon-uygulamasi/` klasörü kurulabilir bir web uygulamasıdır (PWA). İçindeki `OKU-BENI.txt` adımlarını izle: klasörü https://app.netlify.com/drop adresine bırak, telefonda aç, "Ana ekrana ekle". Yeniden üretmek için: `cd app && npm run build:web`.
+
 ## 1. Bilgisayarda açma
 Gerekli: Node.js 20+ (https://nodejs.org).
 
