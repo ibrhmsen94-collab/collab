@@ -36,8 +36,14 @@ const NOW = new Date(2026, 10, 16, 10, 0, 0); // 16 Kasım 2026
   // Bugün: 1 Kasım başlangıç, 28 gün → 29 Kasım; bugün döngünün 16. günü
   await id('headline').waitFor();
   assert.equal(await text('headline'), 'Adete 13 gün');
+  assert.match(await text('next-period'), /24 Kasım – 4 Aralık/);
+  // Doğurgan pencere varsayılan olarak kapalı; Ayarlar'dan açılır
+  assert.equal(await id('fertile').count(), 0);
+  assert.equal(await id('phase').count(), 0);
+  await id('tab-settings').click();
+  await id('set-fertility').click();
+  await id('tab-today').click();
   assert.equal(await text('phase'), 'Doğurgan dönem');
-  assert.match(await text('next-period'), /26 Kasım – 2 Aralık/);
   assert.match(await text('fertile'), /10 Kasım – 16 Kasım/);
   await shot('03-bugun');
 
@@ -45,6 +51,8 @@ const NOW = new Date(2026, 10, 16, 10, 0, 0); // 16 Kasım 2026
   await id('log-today').click();
   await id('sym-cramps').click();
   await id('mood-calm').click();
+  await id('log-bbt').fill('98.6');
+  await id('bbt-error').waitFor();
   await id('log-bbt').fill('36,6');
   await id('log-note').fill('deneme notu');
   await shot('04-kayit');
@@ -95,7 +103,17 @@ const NOW = new Date(2026, 10, 16, 10, 0, 0); // 16 Kasım 2026
   await id('import-text').fill('{"bozuk":true}');
   await id('import-ok').click();
   await id('import-error').waitFor();
-  await page.getByText('Vazgeç').last().click();
+  await id('import-cancel').click();
+  // Geçerli yedek: önce özet/onay, sonra değiştirme; gelecekteki kayıt atılır
+  await id('set-import').click();
+  await id('import-text').fill('{"version":1,"settings":{},"logs":{"2026-11-10":{"flow":"heavy"},"2030-01-01":{"flow":"heavy"}}}');
+  await id('import-ok').click();
+  await page.getByText('Yedekte 1 günlük kayıt var').waitFor();
+  await id('import-ok').click();
+  await id('settings-msg').waitFor();
+  await id('tab-stats').click();
+  assert.equal(await text('stat-count'), '0');
+  await id('tab-settings').click();
   await id('set-delete').click();
   await id('delete-yes').click();
   await id('lang-tr').waitFor(); // onboarding'e döndü

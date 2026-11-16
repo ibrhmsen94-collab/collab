@@ -13,7 +13,7 @@ Yeni proje eklemek için aşağıdaki şablonu kopyala. Ajan `BEKLIYOR` olanlar�
 -->
 
 ## adet-takibi
-- Durum: DEVAM
+- Durum: BITTI (mağaza yayını kullanıcıda; bkz. projeler/adet-takibi/YAYINLAMA.md)
 - Amaç: Gizlilik öncelikli, Türkçe/İngilizce adet takibi mobil uygulaması (iOS + Android).
 - Gereksinimler:
   - Güncel uygulamalar araştırılıp referans alınır (`projeler/adet-takibi/arastirma/`).
