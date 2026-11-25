@@ -1,0 +1,363 @@
+<!doctype html>
+<html
+  lang="tr"
+  data-composition-variables='[
+  {"id":"etiket","type":"string","label":"Üst etiket","default":"GÜNÜN BİLGİSİ"},
+  {"id":"baslik","type":"string","label":"Kanca başlık","default":"Bir günde kalbin kaç kez atar?"},
+  {"id":"altbaslik","type":"string","label":"Alt başlık","default":"Vücudunun sessiz motoru hakkında 3 gerçek"},
+  {"id":"f1n","type":"number","label":"Gerçek 1 sayı","default":100000},
+  {"id":"f1b","type":"string","label":"Gerçek 1 birim","default":"atış"},
+  {"id":"f1t","type":"string","label":"Gerçek 1 metin","default":"Ortalama bir kalp günde yaklaşık 100.000 kez atar."},
+  {"id":"f2n","type":"number","label":"Gerçek 2 sayı","default":7500},
+  {"id":"f2b","type":"string","label":"Gerçek 2 birim","default":"litre"},
+  {"id":"f2t","type":"string","label":"Gerçek 2 metin","default":"Her gün yaklaşık 7.500 litre kan pompalar."},
+  {"id":"f3n","type":"number","label":"Gerçek 3 sayı","default":100000},
+  {"id":"f3b","type":"string","label":"Gerçek 3 birim","default":"km damar"},
+  {"id":"f3t","type":"string","label":"Gerçek 3 metin","default":"Damarların uç uca eklense Dünya&#39;yı 2,5 kez sarar."},
+  {"id":"gbaslik","type":"string","label":"Grafik başlığı","default":"Dakikadaki nabız (ort.)"},
+  {"id":"g1e","type":"string","label":"Çubuk 1","default":"Bebek"},
+  {"id":"g1d","type":"number","label":"Değer 1","default":130},
+  {"id":"g2e","type":"string","label":"Çubuk 2","default":"Çocuk"},
+  {"id":"g2d","type":"number","label":"Değer 2","default":95},
+  {"id":"g3e","type":"string","label":"Çubuk 3","default":"Yetişkin"},
+  {"id":"g3d","type":"number","label":"Değer 3","default":72},
+  {"id":"g4e","type":"string","label":"Çubuk 4","default":"Sporcu"},
+  {"id":"g4d","type":"number","label":"Değer 4","default":50},
+  {"id":"sonuc","type":"string","label":"Kapanış","default":"Her atış, sana ayrılmış bir saniye."},
+  {"id":"cta","type":"string","label":"Çağrı","default":"Yarın yeni bilgi için takip et"},
+  {"id":"kaynak","type":"string","label":"Kaynak","default":"Kaynak: American Heart Association"},
+  {"id":"dil","type":"string","label":"Sayı biçimi (tr-TR / en-US)","default":"tr-TR"},
+  {"id":"vurgu","type":"color","label":"Vurgu rengi","default":"#22d3ee"},
+  {"id":"vurgu2","type":"color","label":"İkinci vurgu","default":"#a855f7"}
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #05060f;
+        --ink: #f5f7ff;
+        --muted: #9aa3c7;
+        --vurgu: #22d3ee;
+        --vurgu2: #a855f7;
+        --font-display: "Montserrat";
+        --font-body: "Inter";
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ground); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: var(--font-body); color: var(--ink); background: var(--ground); }
+
+      /* ---------- arka plan ---------- */
+      #bg { position: absolute; inset: 0; z-index: 1; }
+      .blob { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.55; }
+      #blob-a { width: 900px; height: 900px; left: -300px; top: 100px; background: var(--vurgu); }
+      #blob-b { width: 800px; height: 800px; right: -320px; top: 900px; background: var(--vurgu2); }
+      #blob-c { width: 600px; height: 600px; left: 200px; top: 1500px; background: #f472b6; opacity: 0.35; }
+      #grid { position: absolute; left: -540px; right: -540px; bottom: -200px; height: 900px;
+        background-image: linear-gradient(rgba(255,255,255,0.09) 2px, transparent 2px),
+          linear-gradient(90deg, rgba(255,255,255,0.09) 2px, transparent 2px);
+        background-size: 90px 90px; transform-origin: 50% 100%;
+        -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+        mask-image: linear-gradient(to top, #000 10%, transparent 90%); }
+      #grid-wrap { position: absolute; inset: 0; perspective: 900px; }
+      #globe { position: absolute; left: 290px; top: 260px; width: 500px; height: 500px; opacity: 0.0; }
+      #globe svg { width: 100%; height: 100%; overflow: visible; }
+      .dot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+      #noise { position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,0.65) 100%); }
+
+      /* ---------- ortak ---------- */
+      .scene { position: absolute; inset: 0; z-index: 5; }
+      .col { position: absolute; left: 130px; width: 640px; }
+      .kicker { display: inline-block; font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: 0.18em;
+        padding: 14px 26px; border-radius: 999px; color: var(--ground);
+        background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); }
+      .h1 { font-family: var(--font-display); font-weight: 900; line-height: 1.02; letter-spacing: -0.02em; }
+      .grad { background: linear-gradient(100deg, #fff 10%, var(--vurgu) 55%, var(--vurgu2) 95%);
+        -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .glass { border-radius: 36px; background: linear-gradient(160deg, rgba(255,255,255,0.13), rgba(255,255,255,0.03));
+        border: 2px solid rgba(255,255,255,0.18); box-shadow: 0 40px 120px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.25); }
+      .body { font-size: 44px; line-height: 1.25; font-weight: 700; }
+
+      /* kanca */
+      #hook-kicker { top: 330px; }
+      #hook-title { top: 820px; font-size: 104px; max-height: 330px; }
+      #hook-sub { top: 1160px; font-size: 40px; color: var(--muted); font-weight: 700; max-height: 80px; }
+
+      /* gerçek kartları */
+      .fact-idx { top: 320px; font-family: var(--font-display); font-weight: 900; font-size: 40px; color: var(--muted); letter-spacing: 0.1em; }
+      .fact-ring { position: absolute; left: 230px; top: 400px; width: 440px; height: 440px; }
+      .fact-ring svg { width: 100%; height: 100%; overflow: visible; }
+      .fact-num { position: absolute; left: 280px; width: 340px; top: 560px; white-space: nowrap; text-align: center; font-family: var(--font-display);
+        font-weight: 900; font-size: 104px; letter-spacing: -0.03em; max-height: 130px; }
+      .fact-unit { position: absolute; left: 280px; width: 340px; top: 690px; white-space: nowrap; max-height: 50px; text-align: center; font-family: var(--font-display);
+        font-weight: 800; font-size: 38px; color: var(--vurgu); letter-spacing: 0.08em; text-transform: uppercase; }
+      .fact-card { position: absolute; left: 130px; width: 640px; top: 900px; height: 330px; padding: 44px 46px; display: flex; align-items: center; }
+      .fact-card .body { max-height: 240px; width: 100%; }
+
+      /* grafik */
+      #ch-title { top: 330px; font-size: 64px; max-height: 150px; }
+      #ch-box { position: absolute; left: 130px; width: 640px; top: 520px; height: 720px; padding: 40px 36px 30px; }
+      .bar-row { position: absolute; left: 36px; right: 36px; height: 130px; }
+      .bar-lbl { position: absolute; left: 0; top: 0; font-size: 34px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+      .bar-track { position: absolute; left: 0; right: 0; top: 52px; height: 58px; border-radius: 18px; background: rgba(255,255,255,0.07); }
+      .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 18px; transform-origin: 0 50%;
+        background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); box-shadow: 0 0 40px var(--vurgu); }
+      .bar-val { position: absolute; right: 0; top: 0; font-family: var(--font-display); font-size: 38px; font-weight: 900; }
+
+      /* kapanış */
+      #out-title { top: 560px; font-size: 88px; max-height: 380px; }
+      #out-cta { position: absolute; left: 130px; width: 640px; top: 1000px; padding: 34px 40px; font-family: var(--font-display);
+        font-weight: 800; font-size: 40px; text-align: center; max-height: 170px; }
+      #out-src { top: 1190px; font-size: 28px; color: #c8cee8; font-weight: 400; }
+
+      #progress { position: absolute; left: 130px; width: 640px; top: 296px; height: 6px; border-radius: 6px; z-index: 6;
+        background: rgba(255,255,255,0.12); overflow: hidden; }
+      #progress-fill { width: 100%; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <!-- arka plan -->
+      <div id="bg" class="clip" data-start="0" data-duration="30" data-track-index="0" data-layout-ignore data-layout-allow-overflow>
+        <div id="blob-a" class="blob"></div>
+        <div id="blob-b" class="blob"></div>
+        <div id="blob-c" class="blob"></div>
+        <div id="grid-wrap"><div id="grid"></div></div>
+        <div id="dots"></div>
+        <div id="globe">
+          <svg viewBox="-250 -250 500 500" fill="none" stroke-width="2">
+            <defs>
+              <linearGradient id="gl" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="var(--vurgu)" /><stop offset="1" stop-color="var(--vurgu2)" />
+              </linearGradient>
+            </defs>
+            <g id="globe-meridians" stroke="url(#gl)" opacity="0.8"></g>
+            <g id="globe-parallels" stroke="url(#gl)" opacity="0.45"></g>
+            <circle r="240" stroke="url(#gl)" stroke-width="3" />
+          </svg>
+        </div>
+      </div>
+      <div id="noise" class="clip" data-start="0" data-duration="30" data-track-index="1" data-layout-ignore></div>
+      <div id="progress" class="clip" data-start="0" data-duration="30" data-track-index="2" data-layout-ignore><div id="progress-fill"></div></div>
+
+      <!-- 1: kanca -->
+      <div id="s-hook" class="scene clip" data-start="0" data-duration="4" data-track-index="3">
+        <div id="hook-kicker" class="col"><span class="kicker" id="v-etiket"></span></div>
+        <h1 id="hook-title" class="col h1 grad" data-fit></h1>
+        <p id="hook-sub" class="col" data-fit></p>
+      </div>
+
+      <!-- 2-4: gerçekler -->
+      <div id="s-f1" class="scene clip" data-start="4" data-duration="6" data-track-index="3">
+        <div class="col fact-idx">01 / 03</div>
+        <div class="fact-ring" id="f1-ring"></div>
+        <div class="fact-num grad" id="f1-num" data-fit>0</div>
+        <div class="fact-unit" id="f1-unit" data-fit></div>
+        <div class="fact-card glass" id="f1-card"><p class="body" id="f1-text" data-fit></p></div>
+      </div>
+      <div id="s-f2" class="scene clip" data-start="10" data-duration="6" data-track-index="3">
+        <div class="col fact-idx">02 / 03</div>
+        <div class="fact-ring" id="f2-ring"></div>
+        <div class="fact-num grad" id="f2-num" data-fit>0</div>
+        <div class="fact-unit" id="f2-unit" data-fit></div>
+        <div class="fact-card glass" id="f2-card"><p class="body" id="f2-text" data-fit></p></div>
+      </div>
+      <div id="s-f3" class="scene clip" data-start="16" data-duration="6" data-track-index="3">
+        <div class="col fact-idx">03 / 03</div>
+        <div class="fact-ring" id="f3-ring"></div>
+        <div class="fact-num grad" id="f3-num" data-fit>0</div>
+        <div class="fact-unit" id="f3-unit" data-fit></div>
+        <div class="fact-card glass" id="f3-card"><p class="body" id="f3-text" data-fit></p></div>
+      </div>
+
+      <!-- 5: grafik -->
+      <div id="s-chart" class="scene clip" data-start="22" data-duration="5" data-track-index="3">
+        <h2 id="ch-title" class="col h1 grad" data-fit></h2>
+        <div id="ch-box" class="glass">
+          <div class="bar-row" id="b1" style="top:40px"><span class="bar-lbl" id="b1-l"></span><span class="bar-val" id="b1-v">0</span><div class="bar-track"><div class="bar-fill" id="b1-f"></div></div></div>
+          <div class="bar-row" id="b2" style="top:210px"><span class="bar-lbl" id="b2-l"></span><span class="bar-val" id="b2-v">0</span><div class="bar-track"><div class="bar-fill" id="b2-f"></div></div></div>
+          <div class="bar-row" id="b3" style="top:380px"><span class="bar-lbl" id="b3-l"></span><span class="bar-val" id="b3-v">0</span><div class="bar-track"><div class="bar-fill" id="b3-f"></div></div></div>
+          <div class="bar-row" id="b4" style="top:550px"><span class="bar-lbl" id="b4-l"></span><span class="bar-val" id="b4-v">0</span><div class="bar-track"><div class="bar-fill" id="b4-f"></div></div></div>
+        </div>
+      </div>
+
+      <!-- 6: kapanış -->
+      <div id="s-out" class="scene clip" data-start="27" data-duration="3" data-track-index="3">
+        <h2 id="out-title" class="col h1 grad" data-fit></h2>
+        <div id="out-cta" class="glass" data-fit></div>
+        <p id="out-src" class="col"></p>
+      </div>
+
+      <audio id="muzik" class="clip" src="assets/muzik.mp3" data-start="0" data-duration="30" data-track-index="4" data-volume="0.22"></audio>
+      <audio id="ses" class="clip" src="assets/ses.wav" data-start="0" data-duration="30" data-track-index="5" data-volume="1"></audio>
+    </div>
+
+    <script>
+      (function () {
+        // --- değişkenler ---
+        const decl = JSON.parse(document.documentElement.getAttribute("data-composition-variables"));
+        const V = {};
+        decl.forEach((d) => (V[d.id] = d.default));
+        try {
+          const got = window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables();
+          if (got) Object.assign(V, got);
+        } catch (e) {}
+        const $ = (s) => document.querySelector(s);
+        const root = document.documentElement;
+        root.style.setProperty("--vurgu", V.vurgu);
+        root.style.setProperty("--vurgu2", V.vurgu2);
+        const fmt = (n) => Math.round(n).toLocaleString(V.dil || "tr-TR");
+
+        $("#v-etiket").textContent = V.etiket;
+        $("#hook-title").textContent = V.baslik;
+        $("#hook-sub").textContent = V.altbaslik;
+        [1, 2, 3].forEach((i) => {
+          $(`#f${i}-unit`).textContent = V[`f${i}b`];
+          $(`#f${i}-text`).textContent = V[`f${i}t`];
+          $(`#f${i}-num`).textContent = fmt(V[`f${i}n`]);
+        });
+        $("#ch-title").textContent = V.gbaslik;
+        const vals = [1, 2, 3, 4].map((i) => Number(V[`g${i}d`]) || 0);
+        const vmax = Math.max(...vals, 1);
+        [1, 2, 3, 4].forEach((i) => {
+          $(`#b${i}-l`).textContent = V[`g${i}e`];
+          $(`#b${i}-v`).textContent = fmt(vals[i - 1]);
+        });
+        $("#out-title").textContent = V.sonuc;
+        $("#out-cta").textContent = V.cta;
+        $("#out-src").textContent = V.kaynak;
+
+        // --- metni kutuya sığdır (deterministik, başlangıçta bir kez) ---
+        document.querySelectorAll("[data-fit]").forEach((el) => {
+          const cs = getComputedStyle(el);
+          const maxH = parseFloat(cs.maxHeight) || el.clientHeight || 9999;
+          let fs = parseFloat(cs.fontSize);
+          let guard = 0;
+          while ((el.scrollHeight > maxH + 1 || el.scrollWidth > el.clientWidth + 1) && fs > 24 && guard++ < 80) {
+            fs -= 2;
+            el.style.fontSize = fs + "px";
+          }
+        });
+
+        // --- tohumlu rastgele ---
+        let seed = 20261124;
+        const rnd = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+
+        // parçacıklar
+        const dots = $("#dots");
+        for (let i = 0; i < 40; i++) {
+          const d = document.createElement("div");
+          d.className = "dot";
+          d.id = "dot" + i;
+          d.style.left = rnd() * 1080 + "px";
+          d.style.top = rnd() * 1920 + "px";
+          d.style.opacity = 0.15 + rnd() * 0.5;
+          const s = 3 + rnd() * 7;
+          d.style.width = d.style.height = s + "px";
+          dots.appendChild(d);
+        }
+
+        // küre (meridyen/paralel)
+        const NS = "http://www.w3.org/2000/svg";
+        const mer = $("#globe-meridians"), par = $("#globe-parallels");
+        for (let i = 0; i < 9; i++) {
+          const e = document.createElementNS(NS, "ellipse");
+          e.setAttribute("rx", 240); e.setAttribute("ry", 240); e.setAttribute("class", "mer");
+          mer.appendChild(e);
+        }
+        for (let i = 1; i < 6; i++) {
+          const y = -240 + i * 80, r = Math.sqrt(240 * 240 - y * y);
+          const e = document.createElementNS(NS, "ellipse");
+          e.setAttribute("cy", y); e.setAttribute("rx", r); e.setAttribute("ry", r * 0.18);
+          par.appendChild(e);
+        }
+
+        // halkalar
+        const ringSVG = (id) => {
+          $(id).innerHTML = `<svg viewBox="-220 -220 440 440" fill="none">
+            <circle r="200" stroke="rgba(255,255,255,0.08)" stroke-width="18"/>
+            <circle class="arc" r="200" stroke="url(#gl)" stroke-width="18" stroke-linecap="round" transform="rotate(-90)"
+              stroke-dasharray="1257" stroke-dashoffset="1257"/>
+            <circle class="orb" r="12" cx="0" cy="-200" fill="#fff"/>
+            <circle class="spin" r="170" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-dasharray="4 18"/>
+          </svg>`;
+        };
+        [1, 2, 3].forEach((i) => ringSVG(`#f${i}-ring`));
+
+        // --- zaman çizelgesi ---
+        const tl = gsap.timeline({ paused: true });
+        const T = 30;
+
+        // arka plan hareketi
+        tl.fromTo("#blob-a", { x: 0, y: 0 }, { x: 260, y: 380, duration: T, ease: "sine.inOut" }, 0);
+        tl.fromTo("#blob-b", { x: 0, y: 0 }, { x: -300, y: -420, duration: T, ease: "sine.inOut" }, 0);
+        tl.fromTo("#blob-c", { x: 0, scale: 1 }, { x: 240, scale: 1.4, duration: T, ease: "sine.inOut" }, 0);
+        tl.fromTo("#grid", { rotationX: 70, y: 0 }, { rotationX: 70, y: 900, duration: T, ease: "none" }, 0);
+        tl.fromTo("#progress-fill", { scaleX: 0 }, { scaleX: 1, duration: T, ease: "none" }, 0);
+        for (let i = 0; i < 40; i++) {
+          tl.fromTo("#dot" + i, { y: 0 }, { y: -(150 + (i % 7) * 60), duration: T, ease: "none" }, 0);
+        }
+        // küre dönüşü: meridyenlerin rx'i faz kaydırmalı
+        const merEls = mer.querySelectorAll("ellipse");
+        const g = { p: 0 };
+        tl.fromTo(g, { p: 0 }, {
+          p: Math.PI * 2, duration: T, ease: "none",
+          onUpdate: () => merEls.forEach((e, k) => e.setAttribute("rx", Math.abs(240 * Math.cos(g.p + (k * Math.PI) / 9)))),
+        }, 0);
+        tl.fromTo("#globe", { opacity: 0.6, scale: 0.85, y: 0 }, { opacity: 0.9, scale: 1, duration: 1.2, ease: "expo.out" }, 0);
+        tl.to("#globe", { opacity: 0.12, scale: 1.6, y: 300, duration: 1.0, ease: "power3.inOut" }, 3.4);
+        tl.to("#globe", { opacity: 0.5, scale: 1.1, y: 1000, duration: 1.0, ease: "power3.inOut" }, 26.6);
+
+        // kanca
+        tl.fromTo("#hook-kicker", { opacity: 1, y: 0, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(2)" }, 0.0);
+        tl.fromTo("#hook-title", { opacity: 1, y: 0, scale: 1.08 }, { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: "expo.out" }, 0.0);
+        tl.fromTo("#hook-sub", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.6);
+        tl.to("#s-hook > *", { opacity: 0, y: -60, duration: 0.35, ease: "power2.in", stagger: 0.04 }, 3.55);
+
+        // gerçekler
+        [1, 2, 3].forEach((i) => {
+          const s = 4 + (i - 1) * 6;
+          const n = Number(V[`f${i}n`]) || 0;
+          const c = { v: 0 };
+          const num = $(`#f${i}-num`);
+          tl.fromTo(`#s-f${i} .fact-idx`, { opacity: 0, y: -30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, s);
+          tl.fromTo(`#f${i}-ring`, { opacity: 0, scale: 0.5, rotation: -90 }, { opacity: 1, scale: 1, rotation: 0, duration: 0.8, ease: "expo.out" }, s);
+          tl.fromTo(`#f${i}-ring .arc`, { attr: { "stroke-dashoffset": 1257 } }, { attr: { "stroke-dashoffset": 0 }, duration: 2.2, ease: "power2.inOut" }, s + 0.3);
+          tl.fromTo(`#f${i}-ring .orb`, { rotation: 0, svgOrigin: "0 0" }, { rotation: 360, svgOrigin: "0 0", duration: 2.2, ease: "power2.inOut" }, s + 0.3);
+          tl.fromTo(`#f${i}-ring .spin`, { rotation: 0, svgOrigin: "0 0" }, { rotation: -120, svgOrigin: "0 0", duration: 5.6, ease: "none" }, s);
+          tl.fromTo(num, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.8)" }, s + 0.3);
+          tl.fromTo(c, { v: 0 }, { v: n, duration: 2.2, ease: "power2.out", onUpdate: () => (num.textContent = fmt(c.v)) }, s + 0.3);
+          tl.fromTo(`#f${i}-unit`, { opacity: 0, scaleX: 1.6 }, { opacity: 1, scaleX: 1, duration: 0.7, ease: "power3.out" }, s + 0.8);
+          tl.fromTo(`#f${i}-card`, { opacity: 0, y: 120, rotationX: -25, transformPerspective: 900 }, { opacity: 1, y: 0, rotationX: 0, duration: 0.8, ease: "expo.out" }, s + 1.1);
+          tl.fromTo(`#f${i}-text`, { opacity: 0 }, { opacity: 1, duration: 0.5 }, s + 1.4);
+          tl.to(`#s-f${i} > *`, { opacity: 0, x: -120, duration: 0.35, ease: "power2.in", stagger: 0.03 }, s + 5.5);
+        });
+
+        // grafik
+        tl.fromTo("#ch-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 22);
+        tl.fromTo("#ch-box", { opacity: 0, scale: 0.9, rotationY: 20, transformPerspective: 1200 }, { opacity: 1, scale: 1, rotationY: 0, duration: 0.8, ease: "expo.out" }, 22.2);
+        [1, 2, 3, 4].forEach((i) => {
+          const t0 = 22.6 + (i - 1) * 0.25;
+          const c = { v: 0 };
+          const vEl = $(`#b${i}-v`);
+          tl.fromTo(`#b${i}-f`, { scaleX: 0 }, { scaleX: vals[i - 1] / vmax, duration: 1.2, ease: "expo.out" }, t0);
+          tl.fromTo(c, { v: 0 }, { v: vals[i - 1], duration: 1.2, ease: "expo.out", onUpdate: () => (vEl.textContent = fmt(c.v)) }, t0);
+          tl.fromTo(`#b${i}-l`, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t0);
+        });
+        tl.to("#s-chart > *", { opacity: 0, y: -60, duration: 0.35, ease: "power2.in", stagger: 0.05 }, 26.55);
+
+        // kapanış
+        tl.fromTo("#out-title", { opacity: 0, scale: 1.15, filter: "blur(14px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out" }, 27);
+        tl.fromTo("#out-cta", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.6)" }, 27.4);
+        tl.fromTo("#out-cta", { boxShadow: "0 0 0px var(--vurgu)" }, { boxShadow: "0 0 70px var(--vurgu)", duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: 1 }, 28.0);
+        tl.fromTo("#out-src", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 27.8);
+
+        window.__timelines["main"] = tl;
+        tl.seek(0);
+      })();
+    </script>
+  </body>
+</html>

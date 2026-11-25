@@ -21,3 +21,12 @@ Yeni proje eklemek için aşağıdaki şablonu kopyala. Ajan `BEKLIYOR` olanlar�
   - Veriler yalnızca cihazda; hesap zorunlu değil.
 - Teknoloji: Expo (React Native) + TypeScript
 - Bitti sayılır: testler geçer, web önizlemede uçtan uca akış çalışır, RAPOR.md yazılmıştır.
+
+## gunluk-reels
+- Durum: DEVAM (sürekli; her gün 06:00 zamanlanmış görev — bkz. projeler/gunluk-reels/GUNLUK_GOREV.md)
+- Amaç: Her gün TR+EN bilgilendirici dikey video (YouTube Shorts, Instagram Reels, TikTok).
+- Gereksinimler:
+  - Modern, gösterişli grafik/animasyon; 30 sn, 1080×1920.
+  - Doğrulanmış kaynaklı içerik; platform başına paylaşım metni.
+- Teknoloji: HyperFrames (HTML→video) + Node
+- Bitti sayılır: o günün iki videosu + PAYLASIM.md commit/push edilmiş, kullanıcıya bildirilmiş.
