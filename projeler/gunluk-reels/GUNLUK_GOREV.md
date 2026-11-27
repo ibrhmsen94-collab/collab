@@ -15,9 +15,14 @@
 5. `node --test` geçmeli. Sonra `node uret.mjs TARIH` (≈10 dk) → `cikti/TARIH/` altında sesli TR+EN mp4 ve `PAYLASIM.md`.
 6. **Kontrol:** her videodan 0.5, 7, 19, 24.5, 28.5. saniyelerden kare çıkar (ffmpeg), bak: taşan/kesilen metin, okunmayan yazı varsa
    içeriği kısalt ve yeniden render et. Ardından `denetci` ajanına içerik doğruluğu + kaynak kontrolü yaptır, bulguları düzelt.
-7. `RAPOR.md` sonundaki "Üretim günlüğü"ne tek satır ekle: `- TARIH — konu — durum`.
-8. Commit (`Reels TARIH: <konu>`) ve `git push -u origin claude/gracious-pascal-i9slax`.
-9. Kullanıcıya PushNotification ile kısa Türkçe bildirim: konu + dosya yolları.
+7. **Galeriye yükle (asıl teslim):** Artifact aracıyla `url: "https://claude.ai/artifact/HLbVYda1atZmYiADcYyCeS"`, `asset: true`,
+   `file_paths: [cikti/TARIH/reels-TARIH-tr.mp4, cikti/TARIH/reels-TARIH-en.mp4]` (mutlak yol) ile iki videoyu yükle.
+   Dönen iki `/_blob/...` url ile `node galeri.mjs TARIH <tr_url> <en_url>` çalıştır, sonra ArtifactData
+   `action: "set"`, `collection: "videolar"`, `doc_id: TARIH`, `file_path: cikti/TARIH/galeri-satir.json` ile satırı yaz.
+   Sayfanın kendisini yeniden yayımlama.
+8. `RAPOR.md` sonundaki "Üretim günlüğü"ne tek satır ekle: `- TARIH — konu — durum`.
+9. Yedek: commit (`Reels TARIH: <konu>`) ve `git push -u origin claude/gracious-pascal-i9slax` dene. Push başarısız olursa bu
+   ENGEL değildir (videolar galeride); sadece özetinde belirt.
+10. Kullanıcıya kısa Türkçe özet: konu + galeri linki https://claude.ai/artifact/HLbVYda1atZmYiADcYyCeS
 
-Kurallar: platformlara otomatik yükleme yapma (hesap/API anahtarı gerekir → kullanıcı yükler). Hata olursa günlüğe `ENGEL` + neden yaz,
-yine de commit/push et ve bildir. Test atlama yok.
+Kurallar: platformlara otomatik yükleme yapma (hesap/API anahtarı gerekir → kullanıcı yükler). Hata olursa günlüğe `ENGEL` + neden yaz ve bildir. Test atlama yok.
