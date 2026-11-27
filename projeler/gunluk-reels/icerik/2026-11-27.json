@@ -1,0 +1,71 @@
+{
+  "konu": "Şimşek",
+  "kaynaklar": [
+    "https://www.earthdata.nasa.gov/topics/atmosphere/lightning",
+    "https://www.noaa.gov/jetstream/lightning",
+    "https://wmo.int/media/news/wmo-certifies-megaflash-lightning-record-usa",
+    "https://www.uah.edu/rsesc/news/10656-earth-s-new-lightning-capital-revealed",
+    "https://geology.com/records/lightning-hotspots",
+    "https://www.weather.gov/safety/lightning-science-thunder"
+  ],
+  "vurgu": "#facc15",
+  "vurgu2": "#8b5cf6",
+  "tr": {
+    "etiket": "GÜNÜN BİLGİSİ",
+    "baslik": "Şu an dünyada kaç şimşek çakıyor?",
+    "altbaslik": "Gökyüzünün en hızlı ateşi hakkında 3 gerçek",
+    "f1n": 30000, "f1b": "°C",
+    "f1t": "Şimşek kanalı yaklaşık 30.000 °C'ye ulaşır: Güneş yüzeyinin 5 katı.",
+    "f2n": 44, "f2b": "şimşek / saniye",
+    "f2t": "Dünyada her saniye ortalama 44 şimşek çakar; günde 3,8 milyon.",
+    "f3n": 829, "f3b": "km rekor",
+    "f3t": "Ölçülen en uzun şimşek 829 km: Teksas'tan Kansas City'ye uzandı.",
+    "gbaslik": "Şimşek/km² (yıllık)",
+    "g1e": "Maracaibo (Venezuela)", "g1d": 233,
+    "g2e": "Kabare (Kongo DC)", "g2d": 205,
+    "g3e": "Kampene (Kongo DC)", "g3d": 177,
+    "g4e": "Cáceres (Kolombiya)", "g4d": 172,
+    "sonuc": "Gök gürlüyorsa içeri gir: şimşek 16 km öteye ulaşabilir.",
+    "cta": "Her gün yeni bilgi için takip et",
+    "kaynak": "Kaynak: NASA, NOAA, WMO, BAMS",
+    "aciklama": "Şimşek kanalı ~30.000 °C'ye ulaşır, dünyada saniyede ~44 şimşek çakar ve WMO onaylı en uzun şimşek 829 km. Şimşeğin başkenti Venezuela'daki Maracaibo Gölü.",
+    "etiketler": ["bilgi", "şimşek", "doğa", "bilim", "gününbilgisi", "reels"],
+    "seslendirme": [
+      "Şu an dünyada kaç şimşek çakıyor?",
+      "Şimşek otuz bin dereceye ulaşır. Güneş yüzeyinden beş kat sıcak.",
+      "Dünyada her saniye ortalama kırk dört şimşek çakar.",
+      "Ölçülen en uzun şimşek, sekiz yüz yirmi dokuz kilometreydi.",
+      "Şimşeğin başkenti, Venezuela'daki Maracaibo Gölü.",
+      "Gök gürlüyorsa içeri gir."
+    ]
+  },
+  "en": {
+    "etiket": "DAILY FACT",
+    "baslik": "How many lightning bolts strike right now?",
+    "altbaslik": "3 facts about the sky's fastest fire",
+    "f1n": 30000, "f1b": "°C",
+    "f1t": "A lightning channel reaches about 30,000 °C, five times hotter than the Sun's surface.",
+    "f2n": 44, "f2b": "flashes / second",
+    "f2t": "About 44 lightning flashes strike Earth every second, 3.8 million a day.",
+    "f3n": 829, "f3b": "km record",
+    "f3t": "The longest flash ever measured spanned 829 km, from Texas to Kansas City.",
+    "gbaslik": "Flashes/km² per year",
+    "g1e": "Maracaibo (Venezuela)", "g1d": 233,
+    "g2e": "Kabare (DR Congo)", "g2d": 205,
+    "g3e": "Kampene (DR Congo)", "g3d": 177,
+    "g4e": "Cáceres (Colombia)", "g4d": 172,
+    "sonuc": "When thunder roars, go indoors. Lightning reaches 16 km.",
+    "cta": "Follow for a new fact every day",
+    "kaynak": "Source: NASA, NOAA, WMO, BAMS",
+    "aciklama": "A lightning channel hits ~30,000 °C, Earth sees ~44 flashes every second, and the WMO-certified longest flash spans 829 km. The lightning capital of the world is Lake Maracaibo, Venezuela.",
+    "etiketler": ["facts", "lightning", "nature", "science", "dailyfact", "reels"],
+    "seslendirme": [
+      "How many lightning bolts are striking right now?",
+      "Lightning reaches thirty thousand degrees. Five times hotter than the Sun's surface.",
+      "About forty four flashes strike Earth every second.",
+      "The longest flash ever measured stretched eight hundred twenty nine kilometers.",
+      "The lightning capital of the world is Lake Maracaibo, in Venezuela.",
+      "When thunder roars, go indoors."
+    ]
+  }
+}

@@ -29,3 +29,4 @@ node uret.mjs 2026-11-25 --taslak # hızlı önizleme
 
 ## Üretim günlüğü
 - 2026-11-25 — İnsan kalbi — BITTI (ilk örnek)
+- 2026-11-27 — Şimşek — BITTI (sesli; elle üretildi, sabahki 'Ay' çalışması push edilemedi)
