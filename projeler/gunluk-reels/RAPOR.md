@@ -9,7 +9,8 @@ Her gün 06:00'da (İstanbul) bilgilendirici, 30 sn, 1080×1920 dikey video: Tü
   Yazılar platform güvenli alanında; uzun metin otomatik küçültülür.
 - `icerik/TARIH.json` — günün içeriği (TR+EN, kaynaklar, renkler, açıklama, etiketler).
 - `uret.mjs` — doğrular, iki dili render eder, `cikti/TARIH/PAYLASIM.md` (platform başına başlık/açıklama/etiket) yazar.
-- `ses.mjs` — seslendirme: her sahneye ayrı cümle, ücretsiz yerel TTS (TR: Piper `tr_TR-dfki-medium`, EN: Kokoro `am_michael`),
+- `ses.mjs` + `cb_tts.py` — seslendirme: her sahneye ayrı cümle; ana motor Chatterbox Multilingual (MIT, doğal ses), her cümle Whisper ile
+  metne karşı denetlenir (uydurma/tekrar/eksik → yeniden üretim); yedek: Piper (TR), Kokoro (EN);
   sığmayan cümle ≤%35 hızlandırılır, daha uzunsa hata; tek 30 sn iz (loudnorm −16 LUFS), müzik altta (%22).
 - `uret.test.mjs`, `ses.test.mjs` — 10 test.
 - `GUNLUK_GOREV.md` — zamanlanmış görevin adım adım talimatı.
@@ -24,9 +25,10 @@ node uret.mjs 2026-11-25 --taslak # hızlı önizleme
 ## Sınırlar / ENGEL
 - Platformlara otomatik yükleme yok: YouTube/Instagram/TikTok hesap yetkisi ve API anahtarı gerekir. Videolar + `PAYLASIM.md` hazır; yüklemeyi kullanıcı yapar.
 - Ses modelleri `collab` ortamının kurulum betiğiyle kurulur (Hugging Face erişimi gerekli).
+- Galeri: https://claude.ai/artifact/HLbVYda1atZmYiADcYyCeS (asıl teslim yeri).
 - Video başına ~5–10 MB; depo yılda birkaç GB büyür. Gerekirse eski `cikti/` klasörleri arşivlenmeli (silme kullanıcı onayıyla).
 - Denetim uyarıları (bilinçli): tek dosyalı kök kompozisyon (değişkenlerin tek yerden okunması için), sayaç `onUpdate` uyarısı (DOM ölçümü yok, yanlış pozitif).
 
 ## Üretim günlüğü
 - 2026-11-25 — İnsan kalbi — BITTI (ilk örnek)
-- 2026-11-27 — Şimşek — BITTI (sesli; elle üretildi, sabahki 'Ay' çalışması push edilemedi)
+- 2026-11-27 — Şimşek — BITTI (Chatterbox doğal ses, galeride)
