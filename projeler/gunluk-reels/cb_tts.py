@@ -17,12 +17,18 @@ SAYI = set("""sıfır bir iki üç dört beş altı yedi sekiz dokuz on yirmi ot
 zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen
 twenty thirty forty fifty sixty seventy eighty ninety hundred thousand million billion and""".split())
 
-def kelimeler(s):
-    s = s.lower().replace("'", " ").replace("’", " ")
-    return [w for w in re.findall(r"[^\W\d_]+", s) if w not in SAYI]
+KISALTMA = {"km": "kilometre", "kg": "kilogram", "cm": "santimetre", "mm": "milimetre", "°c": "derece", "%": "yüzde"}
 
-def benzerlik(hedef, duyulan):
-    return difflib.SequenceMatcher(None, kelimeler(hedef), kelimeler(duyulan)).ratio()
+def harfler(s):
+    s = s.lower().replace("'", " ").replace("’", " ")
+    for k, v in KISALTMA.items():
+        s = re.sub(rf"(?<![^\W\d_]){re.escape(k)}(?![^\W\d_])", " " + v + " ", s)
+    return "".join(w for w in re.findall(r"[^\W\d_]+", s) if w not in SAYI)
+
+def benzerlik(hedef, duyulan):  # harf düzeyi: ek/yazım farklarına toleranslı; fazlalık (tekrar/uydurma) cezalı
+    h, d = harfler(hedef), harfler(duyulan)
+    fazla = max(0.0, len(d) / max(1, len(h)) - 1.05)
+    return difflib.SequenceMatcher(None, h, d).ratio() - fazla
 
 def dinle(wav, sr):
     a = torchaudio.functional.resample(wav, sr, 16000).squeeze(0).numpy().astype(np.float32)
