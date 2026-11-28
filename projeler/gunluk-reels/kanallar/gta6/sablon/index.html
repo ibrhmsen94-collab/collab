@@ -1,0 +1,326 @@
+<!doctype html>
+<html
+  lang="tr"
+  data-composition-variables='[
+  {"id":"etiket","type":"string","label":"Üst etiket","default":"GTA 6 DOSYASI"},
+  {"id":"baslik","type":"string","label":"Kanca başlık","default":"GTA 6 tek günde ne kadar kazandı?"},
+  {"id":"altbaslik","type":"string","label":"Alt başlık","default":"Eğlence tarihinin en büyük açılışı: 3 rakam"},
+  {"id":"f1n","type":"number","label":"Gerçek 1 sayı","default":3790},
+  {"id":"f1b","type":"string","label":"Gerçek 1 birim","default":"milyon $"},
+  {"id":"f1t","type":"string","label":"Gerçek 1 metin","default":"İlk gün perakende satışı 3,79 milyar dolar."},
+  {"id":"f2n","type":"number","label":"Gerçek 2 sayı","default":32500000},
+  {"id":"f2b","type":"string","label":"Gerçek 2 birim","default":"ön satış"},
+  {"id":"f2t","type":"string","label":"Gerçek 2 metin","default":"Çıkıştan önce 32,5 milyon kopya satıldı."},
+  {"id":"f3n","type":"number","label":"Gerçek 3 sayı","default":475},
+  {"id":"f3b","type":"string","label":"Gerçek 3 birim","default":"milyon kez"},
+  {"id":"f3t","type":"string","label":"Gerçek 3 metin","default":"İkinci fragman ilk 24 saatte 475 milyon kez izlendi."},
+  {"id":"gbaslik","type":"string","label":"Grafik başlığı","default":"Satış/hasılat (mn $)"},
+  {"id":"g1e","type":"string","label":"Çubuk 1","default":"GTA 6 · ilk gün"},
+  {"id":"g1d","type":"number","label":"Değer 1","default":3790},
+  {"id":"g2e","type":"string","label":"Çubuk 2","default":"Endgame · gişe"},
+  {"id":"g2d","type":"number","label":"Değer 2","default":2799},
+  {"id":"g3e","type":"string","label":"Çubuk 3","default":"Eras Tour · bilet"},
+  {"id":"g3d","type":"number","label":"Değer 3","default":2077},
+  {"id":"g4e","type":"string","label":"Çubuk 4","default":"GTA 5 · ilk gün"},
+  {"id":"g4d","type":"number","label":"Değer 4","default":800},
+  {"id":"sonuc","type":"string","label":"Kapanış","default":"İlk gün satışı, Endgame gişesini aştı."},
+  {"id":"cta","type":"string","label":"Çağrı","default":"Takip et, kaçırma"},
+  {"id":"kaynak","type":"string","label":"Kaynak","default":"Kaynak: Take-Two, Rockstar"},
+  {"id":"gorselKaynak","type":"string","label":"Görsel kaynağı","default":"Görseller: Rockstar Games"},
+  {"id":"dil","type":"string","label":"Sayı biçimi (tr-TR / en-US)","default":"tr-TR"},
+  {"id":"vurgu","type":"color","label":"Vurgu rengi","default":"#ff4fa3"},
+  {"id":"vurgu2","type":"color","label":"İkinci vurgu","default":"#ffb347"}
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root { --ground: #07040d; --ink: #fff; --muted: #e4d9f0; --vurgu: #ff4fa3; --vurgu2: #ffb347;
+        --font-display: "Montserrat"; --font-body: "Inter"; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ground); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: var(--font-body); color: var(--ink); background: var(--ground); }
+
+      /* ---------- görsel katmanı ---------- */
+      .shot { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+      .shot img { position: absolute; left: -54px; top: -96px; width: 1188px; height: 2112px; object-fit: cover; }
+      #shade { position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(7,4,13,0.75) 0%, rgba(7,4,13,0) 22%),
+          linear-gradient(0deg, rgba(7,4,13,0.97) 0%, rgba(7,4,13,0.9) 38%, rgba(7,4,13,0.72) 52%, rgba(7,4,13,0) 72%); }
+      #tint { position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: 0.35;
+        background: radial-gradient(ellipse at 15% 100%, var(--vurgu) 0%, transparent 55%),
+          radial-gradient(ellipse at 100% 0%, var(--vurgu2) 0%, transparent 45%); }
+      #dim { position: absolute; inset: 0; z-index: 2; background: rgba(7,4,13,0.55); }
+
+      /* ---------- geçiş ---------- */
+      #wipe { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
+      .slash { position: absolute; top: -400px; height: 2720px; transform: skewX(-18deg); }
+      #slash-c { background: var(--ground); left: -3900px; width: 2700px; }
+      #slash-a { background: var(--vurgu); left: -1220px; width: 420px; }
+      #slash-b { background: var(--vurgu2); left: -820px; width: 140px; }
+      #flash { position: absolute; inset: 0; z-index: 21; background: #fff; opacity: 0; }
+
+      /* ---------- HUD ---------- */
+      #hud { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
+      #tag { position: absolute; left: 130px; top: 312px; font-family: var(--font-display); font-weight: 900; font-size: 30px; letter-spacing: 0.2em;
+        padding: 12px 24px; color: var(--ground); background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); transform: skewX(-10deg); }
+      #bar { position: absolute; left: 130px; width: 750px; top: 292px; height: 6px; background: rgba(255,255,255,0.18); overflow: hidden; }
+      #bar-fill { width: 100%; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); }
+      #credit { position: absolute; left: 878px; top: 330px; font-size: 28px; transform-origin: 0 0; transform: rotate(90deg); white-space: nowrap; font-weight: 600; color: rgba(255,255,255,0.75); letter-spacing: 0.04em; }
+
+      /* ---------- ortak ---------- */
+      .scene { position: absolute; inset: 0; z-index: 10; }
+      .col { position: absolute; left: 130px; width: 640px; }
+      .h1 { font-family: var(--font-display); font-weight: 900; line-height: 1.0; letter-spacing: -0.02em; text-transform: uppercase;
+        text-shadow: 0 6px 40px rgba(0,0,0,0.6); }
+      .acc { color: var(--vurgu); }
+      .word { display: inline-block; margin-right: 0.22em; }
+
+      /* kanca */
+      #hook-title { top: 700px; font-size: 104px; max-height: 400px; }
+      #hook-line { position: absolute; left: 130px; top: 1120px; width: 220px; height: 10px; background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); transform-origin: 0 50%; }
+      #hook-sub { top: 1145px; font-size: 38px; color: var(--muted); font-weight: 700; max-height: 96px; }
+
+      /* gerçekler */
+      .f-idx { top: 690px; font-family: var(--font-display); font-weight: 900; font-size: 34px; letter-spacing: 0.18em; color: var(--vurgu2); }
+      .f-num { top: 740px; height: 180px; font-family: var(--font-display); font-weight: 900; font-size: 170px; line-height: 180px; letter-spacing: -0.04em;
+        white-space: nowrap; color: #fff; text-shadow: 0 0 60px var(--vurgu), 0 8px 30px rgba(0,0,0,0.6); }
+      .f-unit { top: 930px; height: 60px; font-family: var(--font-display); font-weight: 900; font-size: 46px; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--vurgu); white-space: nowrap; }
+      .f-text { top: 1010px; font-size: 42px; line-height: 1.2; font-weight: 700; max-height: 200px; text-shadow: 0 2px 12px rgba(0,0,0,0.8); padding-left: 30px;
+        border-left: 8px solid var(--vurgu2); }
+
+      /* grafik */
+      #ch-title { top: 400px; font-size: 68px; max-height: 150px; }
+      #ch-box { position: absolute; left: 130px; width: 640px; top: 580px; height: 640px; }
+      .bar-row { position: absolute; left: 0; right: 0; height: 140px; }
+      .bar-lbl { position: absolute; left: 0; top: 0; font-size: 36px; font-weight: 800; color: #fff; white-space: nowrap; max-width: 470px; overflow: hidden; text-overflow: ellipsis; }
+      .bar-val { position: absolute; right: 0; top: 0; font-family: var(--font-display); font-size: 44px; font-weight: 900; color: var(--vurgu2); }
+      .bar-track { position: absolute; left: 0; right: 0; top: 54px; height: 56px; background: rgba(255,255,255,0.1); transform: skewX(-12deg); }
+      .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; transform-origin: 0 50%;
+        background: linear-gradient(90deg, var(--vurgu), var(--vurgu2)); box-shadow: 0 0 50px var(--vurgu); }
+
+      /* kapanış */
+      #out-title { top: 640px; font-size: 88px; max-height: 320px; }
+      #out-cta { position: absolute; left: 130px; top: 1000px; padding: 28px 44px; font-family: var(--font-display); font-weight: 900; font-size: 44px;
+        text-transform: uppercase; letter-spacing: 0.06em; color: var(--ground); background: linear-gradient(90deg, var(--vurgu), var(--vurgu2));
+        transform: skewX(-10deg); max-width: 640px; white-space: nowrap; }
+      #out-src { top: 1140px; font-size: 28px; color: #fff; font-weight: 600; max-height: 80px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <!-- görseller (sahne başına bir) -->
+      <div id="shot0" class="shot clip" data-start="0" data-duration="4.3" data-track-index="0"><img id="img0" src="assets/g/s0.jpg" alt="" /></div>
+      <div id="shot1" class="shot clip" data-start="4" data-duration="6.3" data-track-index="1"><img id="img1" src="assets/g/s1.jpg" alt="" /></div>
+      <div id="shot2" class="shot clip" data-start="10" data-duration="6.3" data-track-index="0"><img id="img2" src="assets/g/s2.jpg" alt="" /></div>
+      <div id="shot3" class="shot clip" data-start="16" data-duration="6.3" data-track-index="1"><img id="img3" src="assets/g/s3.jpg" alt="" /></div>
+      <div id="shot4" class="shot clip" data-start="22" data-duration="5.3" data-track-index="0"><img id="img4" src="assets/g/s4.jpg" alt="" /><div id="dim"></div></div>
+      <div id="shot5" class="shot clip" data-start="27" data-duration="3" data-track-index="1"><img id="img5" src="assets/g/s5.jpg" alt="" /></div>
+      <div id="shade" class="clip" data-start="0" data-duration="30" data-track-index="2" data-layout-ignore></div>
+      <div id="tint" class="clip" data-start="0" data-duration="30" data-track-index="3" data-layout-ignore></div>
+
+      <!-- HUD -->
+      <div id="hud" class="clip" data-start="0" data-duration="30" data-track-index="4" data-layout-ignore>
+        <div id="bar"><div id="bar-fill"></div></div>
+        <div id="tag"><span id="v-etiket"></span></div>
+        <div id="credit"></div>
+      </div>
+
+      <!-- 1: kanca -->
+      <div id="s-hook" class="scene clip" data-start="0" data-duration="4" data-track-index="5">
+        <h1 id="hook-title" class="col h1" data-fit></h1>
+        <div id="hook-line"></div>
+        <p id="hook-sub" class="col" data-fit></p>
+      </div>
+
+      <!-- 2-4: gerçekler -->
+      <div id="s-f1" class="scene clip" data-start="4" data-duration="6" data-track-index="5">
+        <div class="col f-idx">01 / 03</div>
+        <div class="col f-num" id="f1-num" data-fit>0</div>
+        <div class="col f-unit" id="f1-unit" data-fit></div>
+        <p class="col f-text" id="f1-text" data-fit></p>
+      </div>
+      <div id="s-f2" class="scene clip" data-start="10" data-duration="6" data-track-index="5">
+        <div class="col f-idx">02 / 03</div>
+        <div class="col f-num" id="f2-num" data-fit>0</div>
+        <div class="col f-unit" id="f2-unit" data-fit></div>
+        <p class="col f-text" id="f2-text" data-fit></p>
+      </div>
+      <div id="s-f3" class="scene clip" data-start="16" data-duration="6" data-track-index="5">
+        <div class="col f-idx">03 / 03</div>
+        <div class="col f-num" id="f3-num" data-fit>0</div>
+        <div class="col f-unit" id="f3-unit" data-fit></div>
+        <p class="col f-text" id="f3-text" data-fit></p>
+      </div>
+
+      <!-- 5: grafik -->
+      <div id="s-chart" class="scene clip" data-start="22" data-duration="5" data-track-index="5">
+        <h2 id="ch-title" class="col h1" data-fit></h2>
+        <div id="ch-box">
+          <div class="bar-row" id="b1" style="top:0px"><span class="bar-lbl" id="b1-l"></span><span class="bar-val" id="b1-v">0</span><div class="bar-track"><div class="bar-fill" id="b1-f"></div></div></div>
+          <div class="bar-row" id="b2" style="top:160px"><span class="bar-lbl" id="b2-l"></span><span class="bar-val" id="b2-v">0</span><div class="bar-track"><div class="bar-fill" id="b2-f"></div></div></div>
+          <div class="bar-row" id="b3" style="top:320px"><span class="bar-lbl" id="b3-l"></span><span class="bar-val" id="b3-v">0</span><div class="bar-track"><div class="bar-fill" id="b3-f"></div></div></div>
+          <div class="bar-row" id="b4" style="top:480px"><span class="bar-lbl" id="b4-l"></span><span class="bar-val" id="b4-v">0</span><div class="bar-track"><div class="bar-fill" id="b4-f"></div></div></div>
+        </div>
+      </div>
+
+      <!-- 6: kapanış -->
+      <div id="s-out" class="scene clip" data-start="27" data-duration="3" data-track-index="5">
+        <h2 id="out-title" class="col h1" data-fit></h2>
+        <div id="out-cta"><span id="out-cta-t"></span></div>
+        <p id="out-src" class="col" data-fit></p>
+      </div>
+
+      <!-- geçiş -->
+      <div id="wipe" class="clip" data-start="0" data-duration="30" data-track-index="6" data-layout-ignore data-layout-allow-overflow>
+        <div id="slash-c" class="slash"></div>
+        <div id="slash-a" class="slash"></div>
+        <div id="slash-b" class="slash"></div>
+        <div id="flash"></div>
+      </div>
+
+      <audio id="muzik" class="clip" src="assets/muzik.mp3" data-start="0" data-duration="30" data-track-index="7" data-volume="0.22"></audio>
+      <audio id="ses" class="clip" src="assets/ses.wav" data-start="0" data-duration="30" data-track-index="8" data-volume="1"></audio>
+    </div>
+
+    <script>
+      (function () {
+        const decl = JSON.parse(document.documentElement.getAttribute("data-composition-variables"));
+        const V = {};
+        decl.forEach((d) => (V[d.id] = d.default));
+        try {
+          const got = window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables();
+          if (got) Object.assign(V, got);
+        } catch (e) {}
+        const $ = (s) => document.querySelector(s);
+        const root = document.documentElement;
+        root.style.setProperty("--vurgu", V.vurgu);
+        root.style.setProperty("--vurgu2", V.vurgu2);
+        const fmt = (n) => Math.round(n).toLocaleString(V.dil || "tr-TR");
+
+        // başlığı kelimelere böl; son kelime vurgulu
+        const words = (el, txt) => {
+          el.innerHTML = "";
+          const w = String(txt).split(/\s+/).filter(Boolean);
+          w.forEach((t, i) => {
+            const s = document.createElement("span");
+            s.className = "word" + (i >= w.length - 2 ? " acc" : "");
+            s.id = el.id + "-w" + i;
+            s.textContent = t;
+            el.appendChild(s);
+          });
+          return w.length;
+        };
+
+        $("#v-etiket").textContent = V.etiket;
+        $("#credit").textContent = V.gorselKaynak;
+        const nHook = words($("#hook-title"), V.baslik);
+        $("#hook-sub").textContent = V.altbaslik;
+        [1, 2, 3].forEach((i) => {
+          $(`#f${i}-unit`).textContent = V[`f${i}b`];
+          $(`#f${i}-text`).textContent = V[`f${i}t`];
+          $(`#f${i}-num`).textContent = fmt(V[`f${i}n`]);
+        });
+        $("#ch-title").textContent = V.gbaslik;
+        const vals = [1, 2, 3, 4].map((i) => Number(V[`g${i}d`]) || 0);
+        const vmax = Math.max(...vals, 1);
+        [1, 2, 3, 4].forEach((i) => {
+          $(`#b${i}-l`).textContent = V[`g${i}e`];
+          $(`#b${i}-v`).textContent = fmt(vals[i - 1]);
+        });
+        const nOut = words($("#out-title"), V.sonuc);
+        $("#out-cta-t").textContent = V.cta;
+        $("#out-src").textContent = V.kaynak + " · " + V.gorselKaynak;
+
+        // metni kutuya sığdır (son değerle ölçülür)
+        document.querySelectorAll("[data-fit]").forEach((el) => {
+          const cs = getComputedStyle(el);
+          const maxH = parseFloat(cs.maxHeight) || el.clientHeight || 9999;
+          let fs = parseFloat(cs.fontSize), guard = 0;
+          while ((el.scrollHeight > maxH + 1 || el.scrollWidth > el.clientWidth + 1) && fs > 24 && guard++ < 120) {
+            fs -= 2;
+            el.style.fontSize = fs + "px";
+            if (el.classList.contains("f-num")) el.style.lineHeight = el.style.height;
+          }
+        });
+        const cta = $("#out-cta");
+        { let fs = 44, g = 0; while (cta.scrollWidth > 640 && fs > 24 && g++ < 40) { fs -= 2; cta.style.fontSize = fs + "px"; } }
+
+        const tl = gsap.timeline({ paused: true });
+        const T = 30;
+        const CUTS = [4, 10, 16, 22, 27];
+        const SHOTS = [[0, 4.3], [4, 6.3], [10, 6.3], [16, 6.3], [22, 5.3], [27, 3]];
+
+        // Ken Burns: dönüşümlü yön
+        SHOTS.forEach(([s, d], i) => {
+          const dir = i % 2 ? 1 : -1;
+          tl.fromTo(`#img${i}`, { scale: 1.16, x: 30 * dir, y: 20 }, { scale: 1.0, x: -30 * dir, y: -10, duration: d, ease: "none" }, s);
+        });
+        tl.fromTo("#dim", { opacity: 0 }, { opacity: 1, duration: 0.6 }, 22.2);
+        tl.fromTo("#tint", { opacity: 0.12 }, { opacity: 0.3, duration: T, ease: "sine.inOut" }, 0);
+        tl.fromTo("#bar-fill", { scaleX: 0 }, { scaleX: 1, duration: T, ease: "none" }, 0);
+        tl.fromTo("#tag", { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.5, ease: "expo.out" }, 0.1);
+        tl.fromTo("#credit", { opacity: 0 }, { opacity: 0.8, duration: 0.6 }, 0.4);
+        tl.to("#credit", { opacity: 0, duration: 0.3 }, 26.7);
+
+        // neon eğik geçiş (her kesimde 0.5 sn, kesim tam ortada)
+        CUTS.forEach((c) => {
+          const t0 = c - 0.3;
+          tl.fromTo(["#slash-c", "#slash-a", "#slash-b"], { x: 0 }, { x: 5600, duration: 0.6, ease: "power2.inOut" }, t0);
+          tl.fromTo("#flash", { opacity: 0.35 }, { opacity: 0, duration: 0.25, ease: "power2.out" }, c);
+        });
+
+        // kanca: kelimeler sırayla
+        for (let i = 0; i < nHook; i++) {
+          tl.fromTo(`#hook-title-w${i}`, { opacity: 0, y: 90, skewY: 8 }, { opacity: 1, y: 0, skewY: 0, duration: 0.55, ease: "expo.out" }, 0.15 + i * 0.09);
+        }
+        tl.fromTo("#hook-line", { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "expo.out" }, 0.7);
+        tl.fromTo("#hook-sub", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.9);
+        tl.fromTo("#hook-title", { scale: 1 }, { scale: 1.04, duration: 3.5, ease: "none" }, 0.3);
+
+        // gerçekler
+        [1, 2, 3].forEach((i) => {
+          const s = 4 + (i - 1) * 6;
+          const n = Number(V[`f${i}n`]) || 0;
+          const c = { v: 0 };
+          const num = $(`#f${i}-num`);
+          tl.fromTo(`#s-f${i} .f-idx`, { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, s + 0.2);
+          tl.fromTo(num, { opacity: 0, scale: 1.6, x: 0 }, { opacity: 1, scale: 1, duration: 0.6, ease: "expo.out", transformOrigin: "0% 50%" }, s + 0.25);
+          tl.fromTo(c, { v: 0 }, { v: n, duration: 1.8, ease: "power3.out", onUpdate: () => (num.textContent = fmt(c.v)) }, s + 0.25);
+          tl.fromTo(num, { y: 0 }, { y: -10, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, s + 2.05);
+          tl.fromTo(`#f${i}-unit`, { opacity: 0, scaleX: 1.5, transformOrigin: "0% 50%" }, { opacity: 1, scaleX: 1, duration: 0.7, ease: "expo.out" }, s + 0.6);
+          tl.fromTo(`#f${i}-text`, { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, s + 1.0);
+          tl.to(`#s-f${i} > *`, { opacity: 0, x: -140, duration: 0.3, ease: "power2.in", stagger: 0.03 }, s + 5.55);
+        });
+
+        // grafik
+        tl.fromTo("#ch-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, 22.2);
+        [1, 2, 3, 4].forEach((i) => {
+          const t0 = 22.5 + (i - 1) * 0.22;
+          const c = { v: 0 };
+          const vEl = $(`#b${i}-v`);
+          tl.fromTo(`#b${i}`, { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.4, ease: "expo.out" }, t0);
+          tl.fromTo(`#b${i}-f`, { scaleX: 0 }, { scaleX: vals[i - 1] / vmax, duration: 1.3, ease: "expo.out" }, t0 + 0.1);
+          tl.fromTo(c, { v: 0 }, { v: vals[i - 1], duration: 1.3, ease: "expo.out", onUpdate: () => (vEl.textContent = fmt(c.v)) }, t0 + 0.1);
+        });
+        tl.to("#s-chart > *", { opacity: 0, y: -60, duration: 0.3, ease: "power2.in", stagger: 0.05 }, 26.6);
+
+        // kapanış
+        for (let i = 0; i < nOut; i++) {
+          tl.fromTo(`#out-title-w${i}`, { opacity: 0, y: 70, skewY: 6 }, { opacity: 1, y: 0, skewY: 0, duration: 0.5, ease: "expo.out" }, 27.15 + i * 0.06);
+        }
+        tl.fromTo("#out-cta", { opacity: 0, x: -120 }, { opacity: 1, x: 0, duration: 0.5, ease: "back.out(1.6)" }, 27.7);
+        tl.fromTo("#out-cta", { boxShadow: "0 0 0px var(--vurgu)" }, { boxShadow: "0 0 80px var(--vurgu)", duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 28.3);
+        tl.fromTo("#out-src", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 27.5);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+        tl.seek(0);
+      })();
+    </script>
+  </body>
+</html>

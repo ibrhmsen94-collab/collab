@@ -62,6 +62,17 @@ test("kanal içerikleri geçerli ve veri kökü doğru", async () => {
   for (const k of ex(kok) ? rd(kok) : []) {
     const dir = new URL(`./kanallar/${k}/icerik/`, import.meta.url);
     if (!ex(dir)) continue;
-    for (const f of rd(dir).filter((f) => f.endsWith(".json"))) assert.deepEqual(dogrula(JSON.parse(readFileSync(new URL(f, dir)))), [], `${k}/${f}`);
+    const kp = new URL(`./kanallar/${k}/gorsel-katalog.json`, import.meta.url);
+    const kat = ex(kp) ? JSON.parse(readFileSync(kp)) : {};
+    for (const f of rd(dir).filter((f) => f.endsWith(".json"))) assert.deepEqual(dogrula(JSON.parse(readFileSync(new URL(f, dir))), kat), [], `${k}/${f}`);
   }
+});
+
+test("görsel kaynağı doğrulanır", async () => {
+  const { cozumle } = await import("./gorsel.mjs");
+  assert.equal(cozumle("a", { a: "https://www.rockstargames.com/VI/x.jpg" }), "https://www.rockstargames.com/VI/x.jpg");
+  assert.throws(() => cozumle("https://evil.example.com/x.jpg"));
+  assert.throws(() => cozumle("yok-boyle-ad", {}));
+  const ic = ornek(); ic.gorseller = ["a"];
+  assert.ok(dogrula(ic).some((h) => h.startsWith("gorseller")));
 });

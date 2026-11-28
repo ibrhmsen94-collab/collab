@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { sesUret, SAHNELER } from "./ses.mjs";
 import { veriKok } from "./kanal.mjs";
+import { gorselHazirla, cozumle, GORSEL_SAYISI } from "./gorsel.mjs";
 export { veriKok };
 
 const KOK = dirname(fileURLToPath(import.meta.url));
@@ -21,7 +22,7 @@ export function bugun(tz = "Europe/Istanbul") {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
-export function dogrula(ic) {
+export function dogrula(ic, katalog) {
   const h = [];
   if (!ic || typeof ic !== "object") return ["İçerik nesne değil"];
   if (!ic.konu) h.push("konu eksik");
@@ -40,6 +41,10 @@ export function dogrula(ic) {
     if (!Array.isArray(v.etiketler) || v.etiketler.length < 3) h.push(`${d}.etiketler en az 3 olmalı`);
   }
   for (const k of SAYI) if (ic.tr && ic.en && ic.tr[k] !== ic.en[k]) h.push(`${k} TR/EN farklı`);
+  if (ic.gorseller !== undefined) {
+    if (!Array.isArray(ic.gorseller) || ic.gorseller.length !== GORSEL_SAYISI) h.push(`gorseller ${GORSEL_SAYISI} öğe olmalı`);
+    else ic.gorseller.forEach((g, i) => { try { cozumle(g, katalog || {}); } catch (e) { h.push(`gorseller[${i}]: ${e.message}`); } });
+  }
   return h;
 }
 
@@ -47,6 +52,7 @@ export function degiskenler(ic, d) {
   const v = ic[d];
   const o = { dil: d === "tr" ? "tr-TR" : "en-US" };
   for (const k of [...METIN, ...SAYI]) o[k] = v[k];
+  if (v.gorselKaynak) o.gorselKaynak = v.gorselKaynak;
   if (ic.vurgu) o.vurgu = ic.vurgu;
   if (ic.vurgu2) o.vurgu2 = ic.vurgu2;
   return o;
@@ -76,18 +82,22 @@ function main() {
   const dosya = join(veriKok(), "icerik", `${tarih}.json`);
   if (!existsSync(dosya)) { console.error(`Yok: ${dosya}`); process.exit(1); }
   const ic = JSON.parse(readFileSync(dosya, "utf8"));
-  const hatalar = dogrula(ic);
+  const VERI = veriKok();
+  const sablon = existsSync(join(VERI, "sablon", "index.html")) ? join(VERI, "sablon") : join(KOK, "sablon");
+  const katalogYol = join(VERI, "gorsel-katalog.json");
+  const hatalar = dogrula(ic, existsSync(katalogYol) ? JSON.parse(readFileSync(katalogYol, "utf8")) : {});
   if (hatalar.length) { console.error("İçerik hatalı:\n- " + hatalar.join("\n- ")); process.exit(2); }
   const out = join(veriKok(), "cikti", tarih);
   mkdirSync(out, { recursive: true });
+  if (ic.gorseller) gorselHazirla(ic.gorseller, { katalogYol, onbellek: join(out, ".gorsel"), hedefDir: join(sablon, "assets", "g") });
   for (const d of DILLER) {
     const vf = join(out, `.degiskenler-${d}.json`);
     writeFileSync(vf, JSON.stringify(degiskenler(ic, d)));
     const mp4 = join(out, `reels-${tarih}-${d}.mp4`);
     console.log(`Seslendirme: ${d}`);
-    sesUret(d, ic[d].seslendirme, join(out, ".ses"), join(KOK, "sablon", "assets", "ses.wav"));
+    sesUret(d, ic[d].seslendirme, join(out, ".ses"), join(sablon, "assets", "ses.wav"));
     console.log(`Render: ${d} → ${mp4}`);
-    execFileSync("node", [CLI, "render", join(KOK, "sablon"), "--variables-file", vf, "-o", mp4,
+    execFileSync("node", [CLI, "render", sablon, "--variables-file", vf, "-o", mp4,
       "-q", taslak ? "draft" : "delivery", "--crf", "24", "--quiet", "--skill=hyperframes"], { stdio: "inherit" });
   }
   writeFileSync(join(out, "PAYLASIM.md"), paylasimMetni(ic, tarih));

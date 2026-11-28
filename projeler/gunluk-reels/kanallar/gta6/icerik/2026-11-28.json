@@ -7,7 +7,8 @@
     "https://kotaku.com/gta-6-sold-32-5-million-copies-in-pre-release-as-take-two-crowns-it-the-biggest-entertainment-launch-in-history-2000758965",
     "https://www.boxofficemojo.com/title/tt4154796/",
     "https://www.gamespot.com/articles/gtav-generates-800-million-in-24-hours/1100-6414611/",
-    "https://guinnessworldrecords.com/world-records/69631-highest-grossing-music-tour"
+    "https://guinnessworldrecords.com/world-records/69631-highest-grossing-music-tour",
+    "https://www.rockstargames.com/VI/media"
   ],
   "vurgu": "#ff4fa3",
   "vurgu2": "#ffb347",
@@ -52,7 +53,8 @@
       "İkinci fragman bir günde dört yüz yetmiş beş milyon izlendi.",
       "İlk gün satışı, Endgame'in tüm gişesini aştı.",
       "Takipte kal."
-    ]
+    ],
+    "gorselKaynak": "Görseller: Rockstar Games"
   },
   "en": {
     "etiket": "GTA 6 FILES",
@@ -95,6 +97,15 @@
       "Trailer two got four hundred seventy five million views in a day.",
       "Day one sales beat Endgame's whole box office.",
       "Stay tuned."
-    ]
-  }
+    ],
+    "gorselKaynak": "Images: Rockstar Games"
+  },
+  "gorseller": [
+    "Jason_Lucia_Rooftop_portrait",
+    "GTAVI_Out_Now",
+    "Leonida_Keys_01",
+    "Vice_City_14",
+    "Lucia_Caminos_01",
+    "Jason_and_Lucia_14"
+  ]
 }
