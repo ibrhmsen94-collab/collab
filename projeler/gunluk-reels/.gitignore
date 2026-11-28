@@ -8,3 +8,7 @@ kanallar/*/cikti/*/.degiskenler-*.json
 kanallar/*/cikti/*/.ses/
 kanallar/*/sablon/.hyperframes/
 kanallar/*/sablon/renders/
+sablon-gorsel/.hyperframes/
+sablon-gorsel/renders/
+sablon-gorsel/node_modules/
+sablon-gorsel/assets/g/

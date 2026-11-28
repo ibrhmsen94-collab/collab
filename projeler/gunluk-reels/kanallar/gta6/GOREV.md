@@ -1,7 +1,7 @@
 # GTA 6 günlük video görevi (her gün 17:00, Europe/Istanbul)
 
 Çalışma dizini: `projeler/gunluk-reels/`. Dal: `claude/affectionate-hawking-t8ex5a`. Tüm komutlar `KANAL=gta6` ile çalışır.
-Veriler: `kanallar/gta6/icerik/TARIH.json`, çıktı `kanallar/gta6/cikti/TARIH/`. Şablon/ses/paylaşım kodu günlük reels ile ortak.
+Veriler: `kanallar/gta6/icerik/TARIH.json`, çıktı `kanallar/gta6/cikti/TARIH/`. Şablon (`sablon-gorsel/`), ses ve paylaşım kodu günlük reels ile ortak.
 
 1. `git pull`. `TARIH` = bugün (`node -e "import('./uret.mjs').then(m=>console.log(m.bugun()))"`).
    `kanallar/gta6/icerik/TARIH.json` zaten varsa ve galeride `gta6-TARIH` satırı varsa bitir.
@@ -23,7 +23,7 @@ Veriler: `kanallar/gta6/icerik/TARIH.json`, çıktı `kanallar/gta6/cikti/TARIH/
    (Rockstar resmî GTA 6 galerisi: karakterler, Vice City, Leonida Keys, Grassrivers, Port Gellhorn, Mount Kalaga…) ya da
    izinli bir https URL (rockstargames.com, Rockstar akamaized CDN, upload.wikimedia.org). Konuyla eşleşen görsel seç
    (karakterden söz ediyorsan o karakter; bölgeden söz ediyorsan o bölge). Aynı görseli son 5 bölümde tekrar etme;
-   logo/kapak (`Cover_Art`, `Logo`, `FOB_`) seçme. Seçtiklerine bak (uret sonrası `kanallar/gta6/sablon/assets/g/s*.jpg`).
+   logo/kapak (`Cover_Art`, `Logo`, `FOB_`) seçme. Seçtiklerine bak (uret sonrası `sablon-gorsel/assets/g/s*.jpg`).
    Yeni resmî görsel çıktıysa `rockstargames.com/VI/media` ve `/VI/launch-gallery` sayfalarından katalogu güncelle.
    Fragman videosu kesiti kullanma (otomatik telif eşleşmesi riski).
 5. `node --test` geçmeli. `KANAL=gta6 node uret.mjs TARIH` → TR+EN mp4 + `PAYLASIM.md`.

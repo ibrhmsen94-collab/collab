@@ -2,7 +2,7 @@ name: Reels paylaş (YouTube, Instagram, TikTok)
 
 on:
   push:
-    branches: [claude/gracious-pascal-i9slax, claude/affectionate-hawking-t8ex5a]
+    branches: [claude/affectionate-hawking-t8ex5a]
     paths:
       - "projeler/gunluk-reels/cikti/**/reels-*.mp4"
       - "projeler/gunluk-reels/kanallar/*/cikti/**/reels-*.mp4"
@@ -55,7 +55,10 @@ jobs:
           else
             git diff --name-only --relative "$ONCEKI" HEAD -- cikti kanallar \
               | sed -nE 's#^(kanallar/([a-z0-9-]+)/)?cikti/([0-9]{4}-[0-9]{2}-[0-9]{2})/reels-.*#\2:\3#p' \
-              | sort -u | tr '\n' ' ' > /tmp/gunler || true
+              | sort -u > /tmp/gunler_tum || true
+            # birleştirmelerle gelen eski videoları otomatik yeniden yükleme: yalnızca son 3 gün
+            ESIK=$(date -u -d '3 days ago' +%Y-%m-%d)
+            awk -F: -v e="$ESIK" '$2 >= e' /tmp/gunler_tum | tr '\n' ' ' > /tmp/gunler
             echo "liste=$(cat /tmp/gunler)" >> "$GITHUB_OUTPUT"
           fi
 

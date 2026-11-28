@@ -43,7 +43,14 @@ export function dogrula(ic, katalog) {
   for (const k of SAYI) if (ic.tr && ic.en && ic.tr[k] !== ic.en[k]) h.push(`${k} TR/EN farklı`);
   if (ic.gorseller !== undefined) {
     if (!Array.isArray(ic.gorseller) || ic.gorseller.length !== GORSEL_SAYISI) h.push(`gorseller ${GORSEL_SAYISI} öğe olmalı`);
-    else ic.gorseller.forEach((g, i) => { try { cozumle(g, katalog || {}); } catch (e) { h.push(`gorseller[${i}]: ${e.message}`); } });
+    else ic.gorseller.forEach((g, i) => {
+      try {
+        const u = cozumle(g, katalog || {});
+        if (/staticflickr|wikimedia/.test(u) && !(Array.isArray(ic.gorselAtif) && ic.gorselAtif.some((a) => typeof a === "string" && a.trim())))
+          h.push(`gorselAtif gerekli (CC lisanslı görsel: gorseller[${i}])`);
+      } catch (e) { h.push(`gorseller[${i}]: ${e.message}`); }
+    });
+    for (const d of DILLER) if (ic[d] && !ic[d].gorselKaynak) h.push(`${d}.gorselKaynak eksik`);
   }
   return h;
 }
@@ -72,7 +79,8 @@ export function paylasimMetni(ic, tarih) {
       `### ${L.tt}`, "", `${v.baslik} ${et.split(" ").slice(0, 5).join(" ")} #fyp`, "",
     ].join("\n");
   };
-  return [`# ${tarih} — ${ic.konu}`, "", "Kaynaklar:", ...ic.kaynaklar.map((k) => `- ${k}`), "", blok("tr"), blok("en")].join("\n");
+  const atif = Array.isArray(ic.gorselAtif) && ic.gorselAtif.length ? ["", "Görseller:", ...[...new Set(ic.gorselAtif)].map((a) => `- ${a}`)] : [];
+  return [`# ${tarih} — ${ic.konu}`, "", "Kaynaklar:", ...ic.kaynaklar.map((k) => `- ${k}`), ...atif, "", blok("tr"), blok("en")].join("\n");
 }
 
 function main() {
@@ -83,7 +91,8 @@ function main() {
   if (!existsSync(dosya)) { console.error(`Yok: ${dosya}`); process.exit(1); }
   const ic = JSON.parse(readFileSync(dosya, "utf8"));
   const VERI = veriKok();
-  const sablon = existsSync(join(VERI, "sablon", "index.html")) ? join(VERI, "sablon") : join(KOK, "sablon");
+  // görselli içerik → ortak görselli şablon; yoksa eski grafik şablonu
+  const sablon = join(KOK, ic.gorseller ? "sablon-gorsel" : "sablon");
   const katalogYol = join(VERI, "gorsel-katalog.json");
   const hatalar = dogrula(ic, existsSync(katalogYol) ? JSON.parse(readFileSync(katalogYol, "utf8")) : {});
   if (hatalar.length) { console.error("İçerik hatalı:\n- " + hatalar.join("\n- ")); process.exit(2); }

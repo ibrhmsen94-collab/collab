@@ -23,7 +23,7 @@ Yeni proje eklemek için aşağıdaki şablonu kopyala. Ajan `BEKLIYOR` olanlar�
 - Bitti sayılır: testler geçer, web önizlemede uçtan uca akış çalışır, RAPOR.md yazılmıştır.
 
 ## gunluk-reels
-- Durum: DEVAM (sürekli; her gün 06:00 zamanlanmış görev — bkz. projeler/gunluk-reels/GUNLUK_GOREV.md)
+- Durum: DEVAM (sürekli; her gün 05:13 zamanlanmış görev — bkz. projeler/gunluk-reels/GUNLUK_GOREV.md; dal claude/affectionate-hawking-t8ex5a, gerçek fotoğraflı `sablon-gorsel/`)
 - Amaç: Her gün TR+EN bilgilendirici dikey video (YouTube Shorts, Instagram Reels, TikTok).
 - Gereksinimler:
   - Modern, gösterişli grafik/animasyon; 30 sn, 1080×1920.
