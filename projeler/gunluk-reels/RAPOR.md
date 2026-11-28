@@ -37,3 +37,8 @@ node uret.mjs 2026-11-25 --taslak # hızlı önizleme
 - 2026-12-01 — Bal arıları — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
 - 2026-12-02 — Uyku — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
 - 2026-12-03 — Mavi balina — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-04 — Everest — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-05 — Volkanlar — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-06 — İnsan beyni — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-07 — Satürn ve halkaları — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-08 — Amazon yağmur ormanı — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
