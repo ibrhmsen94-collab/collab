@@ -32,3 +32,8 @@ node uret.mjs 2026-11-25 --taslak # hızlı önizleme
 ## Üretim günlüğü
 - 2026-11-25 — İnsan kalbi — BITTI (ilk örnek)
 - 2026-11-27 — Şimşek — BITTI (Chatterbox doğal ses, galeride)
+- 2026-11-29 — Ahtapot — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-11-30 — Kara delikler — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-01 — Bal arıları — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-02 — Uyku — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)
+- 2026-12-03 — Mavi balina — BITTI (toplu üretim, gerçek fotoğraflı şablon, galeride)

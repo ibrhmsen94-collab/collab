@@ -3,6 +3,7 @@ sablon/renders/
 sablon/node_modules/
 cikti/*/.degiskenler-*.json
 cikti/*/.ses/
+cikti/*/.gorsel/
 kanallar/*/cikti/*/.gorsel/
 kanallar/*/cikti/*/.degiskenler-*.json
 kanallar/*/cikti/*/.ses/
