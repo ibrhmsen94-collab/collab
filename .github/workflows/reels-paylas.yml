@@ -1,0 +1,90 @@
+name: Reels paylaş (YouTube, Instagram, TikTok)
+
+on:
+  push:
+    branches: [claude/gracious-pascal-i9slax]
+    paths: ["projeler/gunluk-reels/cikti/**/reels-*.mp4"]
+  workflow_dispatch:
+    inputs:
+      tarih:
+        description: "Paylaşılacak gün (YYYY-MM-DD)"
+        required: true
+      kuru:
+        description: "Sadece plan (hiçbir şey yükleme)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: reels-paylas
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  paylas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: projeler/gunluk-reels
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Paylaşılacak günleri bul
+        id: gunler
+        env:
+          GIRDI: ${{ github.event.inputs.tarih }}
+          ONCEKI: ${{ github.event.before }}
+        run: |
+          if [ -n "$GIRDI" ]; then
+            echo "liste=$GIRDI" >> "$GITHUB_OUTPUT"
+          else
+            git diff --name-only "$ONCEKI" HEAD -- cikti \
+              | grep -oE 'cikti/[0-9]{4}-[0-9]{2}-[0-9]{2}/reels-' \
+              | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | sort -u | tr '\n' ' ' > /tmp/gunler || true
+            echo "liste=$(cat /tmp/gunler)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Yükle
+        env:
+          LISTE: ${{ steps.gunler.outputs.liste }}
+          KURU: ${{ github.event.inputs.kuru }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          TT_CLIENT_KEY: ${{ secrets.TT_CLIENT_KEY }}
+          TT_CLIENT_SECRET: ${{ secrets.TT_CLIENT_SECRET }}
+          TT_REFRESH_TOKEN: ${{ secrets.TT_REFRESH_TOKEN }}
+        run: |
+          set +e; kod=0
+          for t in $LISTE; do
+            if [ "$KURU" = "true" ]; then node paylas/index.mjs "$t" --kuru; else node paylas/index.mjs "$t" || kod=1; fi
+          done
+          exit $kod
+
+      - name: Yenilenen tokenları kaydet
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          for f in YENI_IG_TOKEN YENI_TT_REFRESH; do [ -s "$f" ] && echo "::add-mask::$(cat $f)"; done
+          if [ -z "$GH_TOKEN" ]; then echo "GH_PAT yok; tokenlar otomatik yenilenmeyecek"; exit 0; fi
+          [ -s YENI_IG_TOKEN ] && gh secret set IG_ACCESS_TOKEN --repo "$GITHUB_REPOSITORY" < YENI_IG_TOKEN
+          [ -s YENI_TT_REFRESH ] && gh secret set TT_REFRESH_TOKEN --repo "$GITHUB_REPOSITORY" < YENI_TT_REFRESH
+          rm -f YENI_IG_TOKEN YENI_TT_REFRESH
+
+      - name: Durumu kaydet
+        if: always()
+        run: |
+          git config user.name "reels-bot"
+          git config user.email "reels-bot@users.noreply.github.com"
+          git add cikti/*/PAYLASIM-DURUM.json 2>/dev/null || true
+          git diff --cached --quiet || { git commit -m "Paylaşım durumu güncellendi"; git pull --rebase origin "$GITHUB_REF_NAME" && git push; }
