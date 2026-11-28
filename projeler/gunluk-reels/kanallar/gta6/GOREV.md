@@ -36,3 +36,8 @@ Veriler: `kanallar/gta6/icerik/TARIH.json`, çıktı `kanallar/gta6/cikti/TARIH/
 10. Kısa Türkçe özet: konu + galeri linki https://claude.ai/artifact/HLbVYda1atZmYiADcYyCeS
 
 Kurallar: platformlara kendin yükleme yapma; hata olursa günlüğe `ENGEL` + neden yaz. Test atlama yok.
+
+**Önceden üretilmiş gün:** O günün videosu (`kanallar/gta6/cikti/TARIH/reels-TARIH-tr.mp4`) depoda zaten varsa yeniden üretme;
+yalnızca paylaşımı tetikle: `mcp__github__actions_run_trigger` (gerekirse ToolSearch ile yükle) — owner `ibrhmsen94-collab`,
+repo `collab`, method `run_workflow`, workflow_id `reels-paylas.yml`, ref `claude/affectionate-hawking-t8ex5a`,
+inputs `{"tarih": "TARIH", "kanal": "gta6"}`. Sonra bitir. (Push ile gelen gelecek tarihli videolar otomatik paylaşılmaz.)

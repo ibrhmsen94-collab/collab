@@ -50,6 +50,7 @@ jobs:
           ONCEKI: ${{ github.event.before }}
         run: |
           # Çıktı: "kanal:tarih" listesi (kanal boşsa günlük reels)
+          BUGUN=$(TZ=Europe/Istanbul date +%Y-%m-%d)
           if [ -n "$GIRDI" ]; then
             echo "liste=${KANAL_GIRDI}:${GIRDI}" >> "$GITHUB_OUTPUT"
           else
@@ -58,7 +59,8 @@ jobs:
               | sort -u > /tmp/gunler_tum || true
             # birleştirmelerle gelen eski videoları otomatik yeniden yükleme: yalnızca son 3 gün
             ESIK=$(date -u -d '3 days ago' +%Y-%m-%d)
-            awk -F: -v e="$ESIK" '$2 >= e' /tmp/gunler_tum | tr '\n' ' ' > /tmp/gunler
+            # gelecek tarihli (önceden üretilmiş) videolar o gün günlük ajanın elle tetiklemesiyle (workflow_dispatch) paylaşılır
+            awk -F: -v e="$ESIK" -v b="$BUGUN" '$2 >= e && $2 <= b' /tmp/gunler_tum | tr '\n' ' ' > /tmp/gunler
             echo "liste=$(cat /tmp/gunler)" >> "$GITHUB_OUTPUT"
           fi
 
