@@ -30,3 +30,8 @@ Yeni proje eklemek için aşağıdaki şablonu kopyala. Ajan `BEKLIYOR` olanlar�
   - Doğrulanmış kaynaklı içerik; platform başına paylaşım metni.
 - Teknoloji: HyperFrames (HTML→video) + Node
 - Bitti sayılır: o günün iki videosu + PAYLASIM.md commit/push edilmiş, kullanıcıya bildirilmiş.
+
+## ai-para-takip
+- Durum: DEVAM (zamanlanmış görevlerle sürekli)
+- Amaç: Yapay zekâ ile para kazanma fırsatlarını takip edip haftalık rapor ve günlük fırsat bildirimi üretmek.
+- Çıktı: `projeler/ai-para-takip/raporlar/YYYY-MM-DD.md`, günlük notlar `projeler/ai-para-takip/haberler.md`.
