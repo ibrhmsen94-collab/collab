@@ -22,8 +22,9 @@
    `action: "set"`, `collection: "videolar"`, `doc_id: TARIH`, `file_path: cikti/TARIH/galeri-satir.json` ile satırı yaz.
    Sayfanın kendisini yeniden yayımlama.
 8. `RAPOR.md` sonundaki "Üretim günlüğü"ne tek satır ekle: `- TARIH — konu — durum`.
-9. Yedek: commit (`Reels TARIH: <konu>`) ve `git push -u origin claude/gracious-pascal-i9slax` dene. Push başarısız olursa bu
-   ENGEL değildir (videolar galeride); sadece özetinde belirt.
+9. Commit (`Reels TARIH: <konu>`) ve `git push -u origin claude/gracious-pascal-i9slax`. Bu push YouTube/Instagram/TikTok
+   paylaşımını (GitHub Actions) tetikler; reddedilirse `git pull --no-rebase` sonra tekrar, ağ hatasında 4 kez dene.
+   Yine olmazsa videolar galeride kalır; özetinde "sosyal medyaya paylaşılamadı" diye belirt.
 10. Kullanıcıya kısa Türkçe özet: konu + galeri linki https://claude.ai/artifact/HLbVYda1atZmYiADcYyCeS
 
-Kurallar: platformlara otomatik yükleme yapma (hesap/API anahtarı gerekir → kullanıcı yükler). Hata olursa günlüğe `ENGEL` + neden yaz ve bildir. Test atlama yok.
+Kurallar: platformlara kendin yükleme yapma; paylaşımı push sonrası GitHub Actions yapar (bkz. KURULUM-PAYLASIM.md). Hata olursa günlüğe `ENGEL` + neden yaz ve bildir. Test atlama yok.
