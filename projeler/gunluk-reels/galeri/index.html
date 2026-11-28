@@ -1,0 +1,125 @@
+<title>Günlük Reels</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Inter:wght@400;600&display=swap">
+<style>
+  /* Tek tema: videoların koyu neon dünyasıyla aynı. Dikey kart akışı, yeni gün en üstte. */
+  :root {
+    --bg: #07080f; --panel: #11131f; --line: #23263a; --fg: #eef0fa; --muted: #9aa0bd;
+    --c1: #22d3ee; --c2: #a855f7; --ok: #34d399; --err: #f87171;
+    --display: "Montserrat", system-ui, sans-serif; --body: "Inter", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 28px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 24px; }
+  h1 { font-family: var(--display); font-weight: 900; font-size: clamp(28px, 6vw, 44px); margin: 0; letter-spacing: -0.02em;
+    background: linear-gradient(100deg, var(--fg) 20%, var(--c1) 60%, var(--c2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--muted); margin: 0; }
+  .day { border: 1px solid var(--line); background: var(--panel); border-radius: 20px; padding: 18px; margin-bottom: 20px; }
+  .day-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 14px; }
+  .date { font-family: var(--display); font-weight: 700; color: var(--c1); letter-spacing: 0.06em; font-size: 13px; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+  .topic { font-family: var(--display); font-weight: 900; font-size: 22px; margin: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .clip { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .lang { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; color: var(--muted); }
+  video { width: 100%; max-width: 100%; aspect-ratio: 9 / 16; background: #000; border-radius: 14px; display: block; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  button { font: 600 14px var(--body); color: var(--fg); background: #1b1e30; border: 1px solid var(--line); border-radius: 999px; padding: 9px 14px; cursor: pointer; }
+  button:hover { border-color: var(--c1); }
+  button:focus-visible { outline: 2px solid var(--c1); outline-offset: 2px; }
+  details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  summary { cursor: pointer; font-weight: 600; }
+  pre { white-space: pre-wrap; word-break: break-word; background: #0b0d17; border: 1px solid var(--line); border-radius: 12px; padding: 12px; font: 13px/1.5 var(--body); color: var(--fg); max-height: 360px; overflow: auto; }
+  .note { color: var(--muted); font-size: 13px; }
+  .msg { font-size: 13px; min-height: 1em; }
+  .msg.ok { color: var(--ok); } .msg.err { color: var(--err); }
+  .empty { border: 1px dashed var(--line); border-radius: 20px; padding: 28px; color: var(--muted); text-align: center; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Günlük Reels</h1>
+    <p class="sub">Her sabah 06:00'da yeni video · Türkçe + English · Shorts / Reels / TikTok</p>
+  </header>
+  <main id="list">
+    <div class="empty" id="empty">Videolar yükleniyor…</div>
+  </main>
+</div>
+
+<script>
+(async () => {
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+  const safeUrl = (u) => typeof u === "string" && (u.startsWith("https://") || u.startsWith("/_blob/")) ? u : "";
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  const claudeApi = window.claude;
+  const db = claudeApi ? await claudeApi.use("db") : null;
+  const downloads = claudeApi ? await claudeApi.use("downloads") : null;
+  if (!db) { empty.textContent = "Videoları görmek için claude.ai'de oturum açık olmalı."; return; }
+
+  const timer = setTimeout(() => { empty.textContent = "Videolar şu an yüklenemedi. Sayfayı biraz sonra yenile."; }, 10000);
+
+  function clipBox(label, v, tarih, lang) {
+    const box = el("div", "clip");
+    box.append(el("div", "lang", label));
+    const src = safeUrl(v && v.url);
+    if (!src) { box.append(el("p", "note", "Bu dil için video yok.")); return box; }
+    const video = document.createElement("video");
+    video.controls = true; video.preload = "metadata"; video.playsInline = true; video.src = src;
+    box.append(video);
+    const row = el("div", "row");
+    const msg = el("div", "msg");
+    if (downloads) {
+      const b = el("button", null, "İndir (.mp4)");
+      b.addEventListener("click", async () => {
+        msg.className = "msg"; msg.textContent = "Hazırlanıyor…";
+        try {
+          const blob = await (await fetch(src)).blob();
+          await downloads.save({ filename: `reels-${tarih}-${lang}.mp4`, data: blob });
+          msg.className = "msg ok"; msg.textContent = "İndirildi.";
+        } catch (e) { msg.className = "msg err"; msg.textContent = "İndirme yapılmadı. Videonun üç nokta menüsünden de indirebilirsin."; }
+      });
+      row.append(b);
+    }
+    box.append(row, msg);
+    return box;
+  }
+
+  function render(docs) {
+    list.textContent = "";
+    if (!docs.length) { const e = el("div", "empty", "Henüz video yok. İlk video sabah 06:00'da burada olacak."); list.append(e); return; }
+    for (const d of docs) {
+      const sec = el("section", "day");
+      const head = el("div", "day-head");
+      head.append(el("span", "date", d.tarih || ""), el("h2", "topic", d.konu || ""));
+      const grid = el("div", "grid");
+      grid.append(clipBox("TÜRKÇE", d.tr, d.tarih, "tr"), clipBox("ENGLISH", d.en, d.tarih, "en"));
+      sec.append(head, grid);
+      if (d.paylasim) {
+        const det = el("details");
+        det.append(el("summary", null, "Paylaşım metinleri (başlık, açıklama, etiketler)"));
+        const pre = el("pre", null, d.paylasim);
+        const copy = el("button", null, "Kopyala");
+        const cmsg = el("span", "msg");
+        copy.addEventListener("click", async () => {
+          try { await navigator.clipboard.writeText(d.paylasim); cmsg.className = "msg ok"; cmsg.textContent = " Kopyalandı."; }
+          catch { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); cmsg.className = "msg"; cmsg.textContent = " Metin seçildi, kopyalayabilirsin."; }
+        });
+        const crow = el("div", "row"); crow.append(copy, cmsg);
+        det.append(crow, pre);
+        sec.append(det);
+      }
+      list.append(sec);
+    }
+  }
+
+  db.collection("videolar").orderBy("tarih", "desc").limit(60).onSnapshot(
+    (snap) => { clearTimeout(timer); render(snap.docs.map((s) => s.data())); },
+    () => { clearTimeout(timer); empty.textContent = "Videolar şu an yüklenemedi. Sayfayı biraz sonra yenile."; }
+  );
+})();
+</script>
