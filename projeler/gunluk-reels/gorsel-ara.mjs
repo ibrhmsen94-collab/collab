@@ -33,7 +33,13 @@ export async function nasa(q, n = 10) {
   return (d.collection?.items || []).slice(0, n).map((it) => {
     const m = it.data?.[0] || {};
     const thumb = it.links?.[0]?.href || "";
-    return { url: thumb.replace(/~(thumb|small|medium)\.jpg$/, "~large.jpg"), en: null, boy: null, sayfa: `https://images.nasa.gov/details/${m.nasa_id}`,
+    // her öğede ~large bulunmaz (403): varlık listesinden large > medium > orig seç
+    let url = thumb.replace(/~(thumb|small|medium)\.jpg$/, "~large.jpg");
+    try {
+      const v = (getJSON(`https://images-api.nasa.gov/asset/${encodeURIComponent(m.nasa_id)}`).collection?.items || []).map((x) => x.href.replace(/^http:/, "https:"));
+      url = ["large", "medium", "orig"].map((k) => v.find((h) => h.endsWith(`~${k}.jpg`))).find(Boolean) || url;
+    } catch { /* varsayılan kalır */ }
+    return { url, en: null, boy: null, sayfa: `https://images.nasa.gov/details/${m.nasa_id}`,
       atif: `"${m.title}" — NASA${m.center ? "/" + m.center : ""}, kamu malı` };
   }).filter((r) => IZINLI.test(r.url));
 }
