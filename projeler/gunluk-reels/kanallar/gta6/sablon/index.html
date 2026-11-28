@@ -198,6 +198,7 @@
         } catch (e) {}
         const $ = (s) => document.querySelector(s);
         const root = document.documentElement;
+        root.lang = String(V.dil || "tr-TR").slice(0, 2);
         root.style.setProperty("--vurgu", V.vurgu);
         root.style.setProperty("--vurgu2", V.vurgu2);
         const fmt = (n) => Math.round(n).toLocaleString(V.dil || "tr-TR");
@@ -271,7 +272,7 @@
         CUTS.forEach((c) => {
           const t0 = c - 0.3;
           tl.fromTo(["#slash-c", "#slash-a", "#slash-b"], { x: 0 }, { x: 5600, duration: 0.6, ease: "power2.inOut" }, t0);
-          tl.fromTo("#flash", { opacity: 0.35 }, { opacity: 0, duration: 0.25, ease: "power2.out" }, c);
+          tl.fromTo("#flash", { opacity: 0.35 }, { opacity: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, c);
         });
 
         // kanca: kelimeler sırayla
