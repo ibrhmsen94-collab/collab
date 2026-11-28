@@ -52,3 +52,16 @@ test("seslendirme eksik/yanlış uzunluk yakalanır", () => {
   assert.ok(h.some((x) => x.startsWith("tr.seslendirme")));
   assert.ok(h.some((x) => x.startsWith("en.seslendirme")));
 });
+
+test("kanal içerikleri geçerli ve veri kökü doğru", async () => {
+  const { veriKok } = await import("./kanal.mjs");
+  assert.match(veriKok("gta6"), /kanallar[\\/]gta6$/);
+  assert.throws(() => veriKok("../x"));
+  const { readdirSync: rd, existsSync: ex } = await import("node:fs");
+  const kok = new URL("./kanallar/", import.meta.url);
+  for (const k of ex(kok) ? rd(kok) : []) {
+    const dir = new URL(`./kanallar/${k}/icerik/`, import.meta.url);
+    if (!ex(dir)) continue;
+    for (const f of rd(dir).filter((f) => f.endsWith(".json"))) assert.deepEqual(dogrula(JSON.parse(readFileSync(new URL(f, dir)))), [], `${k}/${f}`);
+  }
+});

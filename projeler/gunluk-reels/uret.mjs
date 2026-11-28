@@ -6,8 +6,11 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { sesUret, SAHNELER } from "./ses.mjs";
+import { veriKok } from "./kanal.mjs";
+export { veriKok };
 
 const KOK = dirname(fileURLToPath(import.meta.url));
+
 const CLI = "/root/.claude/skills/hyperframes/scripts/plugin-cli.mjs";
 export const DILLER = ["tr", "en"];
 export const METIN = ["etiket", "baslik", "altbaslik", "f1b", "f1t", "f2b", "f2t", "f3b", "f3t", "gbaslik", "g1e", "g2e", "g3e", "g4e", "sonuc", "cta", "kaynak"];
@@ -70,12 +73,12 @@ function main() {
   const args = process.argv.slice(2);
   const tarih = args.find((a) => /^\d{4}-\d{2}-\d{2}$/.test(a)) || bugun();
   const taslak = args.includes("--taslak");
-  const dosya = join(KOK, "icerik", `${tarih}.json`);
+  const dosya = join(veriKok(), "icerik", `${tarih}.json`);
   if (!existsSync(dosya)) { console.error(`Yok: ${dosya}`); process.exit(1); }
   const ic = JSON.parse(readFileSync(dosya, "utf8"));
   const hatalar = dogrula(ic);
   if (hatalar.length) { console.error("İçerik hatalı:\n- " + hatalar.join("\n- ")); process.exit(2); }
-  const out = join(KOK, "cikti", tarih);
+  const out = join(veriKok(), "cikti", tarih);
   mkdirSync(out, { recursive: true });
   for (const d of DILLER) {
     const vf = join(out, `.degiskenler-${d}.json`);

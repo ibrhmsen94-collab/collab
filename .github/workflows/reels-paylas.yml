@@ -2,13 +2,19 @@ name: Reels paylaş (YouTube, Instagram, TikTok)
 
 on:
   push:
-    branches: [claude/gracious-pascal-i9slax]
-    paths: ["projeler/gunluk-reels/cikti/**/reels-*.mp4"]
+    branches: [claude/gracious-pascal-i9slax, claude/affectionate-hawking-t8ex5a]
+    paths:
+      - "projeler/gunluk-reels/cikti/**/reels-*.mp4"
+      - "projeler/gunluk-reels/kanallar/*/cikti/**/reels-*.mp4"
   workflow_dispatch:
     inputs:
       tarih:
         description: "Paylaşılacak gün (YYYY-MM-DD)"
         required: true
+      kanal:
+        description: "Kanal (boş = günlük reels, gta6 = GTA 6)"
+        required: false
+        default: ""
       kuru:
         description: "Sadece plan (hiçbir şey yükleme)"
         type: boolean
@@ -40,14 +46,16 @@ jobs:
         id: gunler
         env:
           GIRDI: ${{ github.event.inputs.tarih }}
+          KANAL_GIRDI: ${{ github.event.inputs.kanal }}
           ONCEKI: ${{ github.event.before }}
         run: |
+          # Çıktı: "kanal:tarih" listesi (kanal boşsa günlük reels)
           if [ -n "$GIRDI" ]; then
-            echo "liste=$GIRDI" >> "$GITHUB_OUTPUT"
+            echo "liste=${KANAL_GIRDI}:${GIRDI}" >> "$GITHUB_OUTPUT"
           else
-            git diff --name-only "$ONCEKI" HEAD -- cikti \
-              | grep -oE 'cikti/[0-9]{4}-[0-9]{2}-[0-9]{2}/reels-' \
-              | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | sort -u | tr '\n' ' ' > /tmp/gunler || true
+            git diff --name-only --relative "$ONCEKI" HEAD -- cikti kanallar \
+              | sed -nE 's#^(kanallar/([a-z0-9-]+)/)?cikti/([0-9]{4}-[0-9]{2}-[0-9]{2})/reels-.*#\2:\3#p' \
+              | sort -u | tr '\n' ' ' > /tmp/gunler || true
             echo "liste=$(cat /tmp/gunler)" >> "$GITHUB_OUTPUT"
           fi
 
@@ -65,7 +73,9 @@ jobs:
           TT_REFRESH_TOKEN: ${{ secrets.TT_REFRESH_TOKEN }}
         run: |
           set +e; kod=0
-          for t in $LISTE; do
+          for kt in $LISTE; do
+            export KANAL="${kt%%:*}"; t="${kt#*:}"
+            echo "== ${KANAL:-gunluk} $t"
             if [ "$KURU" = "true" ]; then node paylas/index.mjs "$t" --kuru; else node paylas/index.mjs "$t" || kod=1; fi
           done
           exit $kod
@@ -87,4 +97,5 @@ jobs:
           git config user.name "reels-bot"
           git config user.email "reels-bot@users.noreply.github.com"
           git add cikti/*/PAYLASIM-DURUM.json 2>/dev/null || true
+          git add kanallar/*/cikti/*/PAYLASIM-DURUM.json 2>/dev/null || true
           git diff --cached --quiet || { git commit -m "Paylaşım durumu güncellendi"; git pull --rebase origin "$GITHUB_REF_NAME" && git push; }

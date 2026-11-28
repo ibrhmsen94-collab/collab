@@ -35,3 +35,9 @@ Yeni proje eklemek için aşağıdaki şablonu kopyala. Ajan `BEKLIYOR` olanlar�
 - Durum: DEVAM (zamanlanmış görevlerle sürekli)
 - Amaç: Yapay zekâ ile para kazanma fırsatlarını takip edip haftalık rapor ve günlük fırsat bildirimi üretmek.
 - Çıktı: `projeler/ai-para-takip/raporlar/YYYY-MM-DD.md`, günlük notlar `projeler/ai-para-takip/haberler.md`.
+
+## gta6-video
+- Durum: DEVAM (sürekli; her gün 17:00 zamanlanmış görev — bkz. projeler/gunluk-reels/kanallar/gta6/GOREV.md)
+- Amaç: Her gün TR+EN GTA 6 bilgilendirici dikey video (YouTube Shorts, Instagram Reels, TikTok), otomatik paylaşım.
+- Teknoloji: gunluk-reels hattı, `KANAL=gta6` (veriler `projeler/gunluk-reels/kanallar/gta6/`).
+- Bitti sayılır: o günün iki videosu galeride + push ile GitHub Actions paylaşımı tetiklenmiş.

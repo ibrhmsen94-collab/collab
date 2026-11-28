@@ -9,9 +9,11 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as M from "./metin.mjs";
 import * as P from "./platformlar.mjs";
+import { veriKok } from "../kanal.mjs";
 
 const KOK = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DILLER = ["tr", "en"];
+const VERI = veriKok();
 
 export function plan(env, durum) {
   const hazir = {
@@ -34,8 +36,8 @@ async function main() {
   const tarih = args.find((a) => /^\d{4}-\d{2}-\d{2}$/.test(a));
   if (!tarih) { console.error("Kullanım: node paylas/index.mjs TARIH [--kuru]"); process.exit(1); }
   const kuru = args.includes("--kuru");
-  const ic = JSON.parse(readFileSync(join(KOK, "icerik", `${tarih}.json`), "utf8"));
-  const dir = join(KOK, "cikti", tarih);
+  const ic = JSON.parse(readFileSync(join(VERI, "icerik", `${tarih}.json`), "utf8"));
+  const dir = join(VERI, "cikti", tarih);
   const durumYol = join(dir, "PAYLASIM-DURUM.json");
   const durum = existsSync(durumYol) ? JSON.parse(readFileSync(durumYol, "utf8")) : {};
   const env = process.env;
